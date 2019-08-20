@@ -1,10 +1,18 @@
-console.log("entrypoint - last compiled");
+//
+// Init
+// 
 
-for (let i = 0; i < 10; i++) {
-    console.log(i);
-}
+console.log("Debug Value", DEBUG);
 
-let array = [10, 20, 30, 40, 50];
-for (let x of array) {
-    console.log(x);
-}
+console.log("js12k2019 - Debug mode [ON]"); 
+
+const canvas = document.createElement("canvas");
+const gl = canvas.getContext("webgl");
+
+canvas.width = 800;
+canvas.height = 600;
+
+document.body.appendChild(canvas);
+
+gl.clearColor(0.0, 1.0, 0.0, 1.0);
+gl.clear(gl.COLOR_BUFFER_BIT);
