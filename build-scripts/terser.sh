@@ -12,3 +12,6 @@ OUTPUT_DBG=$(yarn run -s terser $JS_FILES ${TERSER_OPTIONS} --compress ecma=6 --
 
 echo "<!DOCTYPE html><p><script>${OUTPUT}</script>" > "$DIST_DIR/index.html"
 echo "<!DOCTYPE html><head><title>Debug</title></head><p><script>${OUTPUT_DBG}</script>" > "$DIST_DIR/index.debug.html"
+
+
+zip -9 "$DIST_DIR/dist.zip" "$DIST_DIR/index.html"
