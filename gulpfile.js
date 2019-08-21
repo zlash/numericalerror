@@ -10,5 +10,5 @@ function javascript(cb) {
 }
 
 exports.default = () => {
-    watch('src/*.js', javascript);
+    watch('src/**/*.js', javascript);
 }
