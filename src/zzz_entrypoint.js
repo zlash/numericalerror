@@ -68,7 +68,7 @@ function init() {
 
     gl.clearColor(0.0, 1.0, 0.0, 1.0);
 
-    var shader = createProgram(gl, VSVertexColor, FSVertexColor);
+    var shader = createProgram(gl, VSRoom, FSRoom);
 
     gameRenderState.avertexPosition = gl.getAttribLocation(shader, 'aVertexPosition');
     gameRenderState.uProjectionMatrix = gl.getUniformLocation(shader, 'uProjectionMatrix');
