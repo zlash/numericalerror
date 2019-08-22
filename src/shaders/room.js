@@ -24,9 +24,10 @@ float plane(vec3 pos)
 
 float sdBox( vec3 p, vec3 b )
 {
+    float r =0.1;
   vec3 d = abs(p) - b;
-  return length(max(d,0.0))
-         + min(max(d.x,max(d.y,d.z)),0.0); 
+  return length(max(d,0.0)) - r
+         + min(max(d.x,max(d.y,d.z)),0.0);
 }
 
 float sdBoxes( vec3 p, vec3 b )
@@ -48,6 +49,19 @@ vec2 room(vec3 pos)
 
     return vec2(pl,-1.0);
 }
+
+
+vec3 calcNormal( in vec3 pos )
+{
+    const float ep = 0.0001;
+    vec2 e = vec2(1.0,-1.0)*0.5773;
+    return normalize( e.xyy*room( pos + e.xyy*ep ).x + 
+					  e.yyx*room( pos + e.yyx*ep ).x + 
+					  e.yxy*room( pos + e.yxy*ep ).x + 
+					  e.xxx*room( pos + e.xxx*ep ).x );
+}
+
+
 
 mat4 matInverse( mat4 m )
 {
@@ -100,13 +114,16 @@ void main() {
     }
 
     if( t<20.0 )
-    {
+    {   vec3 light = normalize(vec3(1.0,1.0,1.0));
         if(mt.y>0.0) {
             col = vec3(0.8,0.0,0.0);
         }else{
         col = vec3(1.0);
         }
-        col*=shadow(p,normalize(vec3(1.0,1.0,1.0)),0.05,20.0);
+        vec3 n = calcNormal(p);
+
+        col*=dot(light,n);
+        col*=shadow(p,light,0.05,20.0);
     }
 
     gl_FragColor = vec4(col.xyz, 1.0);
