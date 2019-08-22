@@ -22,37 +22,66 @@ float sdfPlane(vec3 pos, vec3 n)
     return dot(pos,n);
 }
 
-float sdfWall(vec3 pos) {
-    return sdfPlane(pos, n);
+float sdfBox( vec3 p, vec3 b )
+{
+  vec3 d = abs(p) - b;
+  return length(max(d,0.0)) + min(max(d.x,max(d.y,d.z)),0.0);
 }
 
-
-
-float sdBox( vec3 p, vec3 b )
+float sdfRoundedBox( vec3 p, vec3 b, float r )
 {
-    float r =0.1;
   vec3 d = abs(p) - b;
   return length(max(d,0.0)) - r
          + min(max(d.x,max(d.y,d.z)),0.0);
 }
 
+float sdfOpIntersection( float d1, float d2 ) {
+     return max(d1,d2); 
+}
+
+//Apply before primitive
+vec3 sdfOpRepeat(vec3 p,vec3 c)
+{
+    return mod(p,c)-0.5*c;
+}
+
+float sdfOpSmoothUnion( float d1, float d2, float k ) {
+    float h = clamp( 0.5 + 0.5*(d2-d1)/k, 0.0, 1.0 );
+    return mix( d2, d1, h ) - k*h*(1.0-h); 
+}
+
+const vec3 brickSize = vec3(0.3,0.13,0.03);
+
+float sdfBrick4x4(vec3 pos) {
+    const float separation=0.95;
+    vec3 repeat = sdfOpRepeat(pos,vec3(brickSize.xy*4.0,0.0));
+    return sdfRoundedBox(repeat, brickSize*vec3(0.8*separation,0.5*separation,1.0),0.05);
+}
+
+float sdfBrickRow(vec3 pos) {
+    return min(sdfBrick4x4(pos),sdfBrick4x4(pos-vec3(brickSize.x*2.0,0.0,0.0)));
+}
+
+float sdfWall(vec3 pos) {
+
+    float d = sdfPlane(pos, vec3(0.0,0.0,1.0));
+
+    float bricksD = min(sdfBrickRow(pos),sdfBrickRow(pos-vec3(brickSize.x,brickSize.y*2.0,0.0)));
+
+    return sdfOpIntersection(sdfOpSmoothUnion(d,bricksD,0.05),sdfBox(pos,vec3(1.0,1.0,1.0)));
+}
+
+
+/*
 float sdBoxes( vec3 p, vec3 b )
 {
     vec3 c =vec3(1.6,1.6,0.0);
     vec3 q = mod(p,c)-0.5*c;
     return sdBox(q,b);
-}
+}*/
 
 vec2 room(vec3 pos)
 {
-    /*float d = 1e10;
-    d = min(d,sdBoxes(pos,vec3(0.5,0.3,0.2)));
-
-    float pl= plane(pos);
-    if(d<pl) {
-        return vec2(d,1.0);
-    }*/
-
     return vec2(sdfWall(pos),-1.0);
 }
 
@@ -122,14 +151,16 @@ void main() {
     if( t<20.0 )
     {   vec3 light = normalize(vec3(1.0,1.0,1.0));
         if(mt.y>0.0) {
-            col = vec3(0.8,0.0,0.0);
+            col = vec3(1.0,0.0,0.0);
         }else{
-        col = vec3(1.0);
+        col = vec3(0.6);
         }
         vec3 n = calcNormal(p);
 
-        col*=dot(light,n);
-        col*=shadow(p,light,0.05,20.0);
+        float att = 1.0;
+        att*=max(0.0,dot(light,n));
+        att*=shadow(p,light,0.05,20.0);
+        col*=min(1.0,0.4+att);
     }
 
     gl_FragColor = vec4(col.xyz, 1.0);
