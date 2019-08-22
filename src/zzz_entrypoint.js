@@ -44,7 +44,7 @@ function render(tMs) {
     gl.useProgram(gameRenderState.shader);
 
     let eye = [0,0,3];
-    let viewV = [Math.sin(tMs),Math.cos(tMs),-1];
+    let viewV = [Math.sin(tMs*0.4),Math.cos(tMs*0.4),-1];
 
     let modelView = m4LookAt(eye, v3Add(eye, viewV), [0,1,0]);
 

@@ -17,10 +17,16 @@ varying vec2 vUvs;
 
 uniform mat4 uModelViewMatrix;
 
-float plane(vec3 pos)
+float sdfPlane(vec3 pos, vec3 n)
 {
-    return dot(pos+vec3(0.0,0.0,2.0),vec3(0.0,0.0,1.0));
+    return dot(pos,n);
 }
+
+float sdfWall(vec3 pos) {
+    return sdfPlane(pos, n);
+}
+
+
 
 float sdBox( vec3 p, vec3 b )
 {
@@ -39,15 +45,15 @@ float sdBoxes( vec3 p, vec3 b )
 
 vec2 room(vec3 pos)
 {
-    float d = 1e10;
+    /*float d = 1e10;
     d = min(d,sdBoxes(pos,vec3(0.5,0.3,0.2)));
 
     float pl= plane(pos);
     if(d<pl) {
         return vec2(d,1.0);
-    }
+    }*/
 
-    return vec2(pl,-1.0);
+    return vec2(sdfWall(pos),-1.0);
 }
 
 
