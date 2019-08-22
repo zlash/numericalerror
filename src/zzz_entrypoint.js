@@ -43,6 +43,13 @@ function render(tMs) {
 
     gl.useProgram(gameRenderState.shader);
 
+    let modelView = m4AxisAngleRotation([0, 0, 1], tMs);
+
+    gl.uniformMatrix4fv(
+        gameRenderState.uModelViewMatrix,
+        false,
+        modelView);
+
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
     requestAnimationFrame(render);

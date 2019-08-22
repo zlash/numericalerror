@@ -15,6 +15,9 @@ const VSVertexColor = `
 const FSVertexColor = `
 precision mediump float;
 varying vec2 vUvs;
+
+uniform mat4 uModelViewMatrix;
+
 void main() {
   gl_FragColor = vec4(vUvs.x, vUvs.y, 1.0, 1.0);
 }

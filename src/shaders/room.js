@@ -16,6 +16,8 @@ const FSRoom = `
 precision mediump float;
 varying vec2 vUvs;
 
+uniform mat4 uModelViewMatrix;
+
 float plane(vec3 pos)
 {
     return dot(pos,vec3(0.0,0.0,1.0))-5.0;
@@ -38,10 +40,11 @@ void main() {
     const float sensorSize = 3.0;
     vec3 col = vec3(0.0);
     float t = 0.1;
+    mat4 invModelView = inverse(uModelViewMatrix);
     for( int i=0; i<64; i++ )
     {
         vec3 p = vec3(sensorSize*(vUvs*2.0-1.0),0.0)+vec3(0.0,0.0,-1.0)*t;
-        float h = room(p);
+        float h = room(vec3(invModelView*vec4(p,1.0)));
         if( abs(h)<0.001 || t>10.0 ) break;
         t += h;
     }
