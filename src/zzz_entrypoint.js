@@ -43,7 +43,10 @@ function render(tMs) {
 
     gl.useProgram(gameRenderState.shader);
 
-    let modelView = m4AxisAngleRotation([0, 0, 1], tMs);
+    let eye = [0,0,3];
+    let viewV = [Math.sin(tMs),Math.cos(tMs),-1];
+
+    let modelView = m4LookAt(eye, v3Add(eye, viewV), [0,1,0]);
 
     gl.uniformMatrix4fv(
         gameRenderState.uModelViewMatrix,

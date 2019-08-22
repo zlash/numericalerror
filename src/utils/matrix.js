@@ -40,3 +40,28 @@ function m4AxisAngleRotation(v3Axis, angle, result = m4Identity()) {
 
     return result;
 }
+
+function m4LookAt(v3Eye, v3Center, v3Up, result = m4Identity()) {
+
+    let f = v3Normalize(v3Subtract(v3Center, v3Eye));
+    let s = v3Normalize(v3Cross(f, v3Up));
+    let u = v3Cross(s, f);
+
+    result[0] = s[0];
+    result[4] = s[1];
+    result[8] = s[2];
+
+    result[1] = u[0];
+    result[5] = u[1];
+    result[9] = u[2];
+
+    result[2] = -f[0];
+    result[6] = -f[1];
+    result[10] = -f[2];
+
+    result[12] = -v3Dot(s, v3Eye);
+    result[13] = -v3Dot(u, v3Eye);
+    result[14] = v3Dot(f, v3Eye);
+
+    return result;
+}

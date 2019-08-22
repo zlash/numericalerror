@@ -15,5 +15,6 @@ echo "<!DOCTYPE html><head><title>Debug</title></head><p><script>${OUTPUT_DBG}</
 
 
 zip -9 "$DIST_DIR/dist.zip" "$DIST_DIR/index.html"
-
+cp "$DIST_DIR/dist.zip" "$DIST_DIR/dist.optimized.zip"
+./build-scripts/optimize_zip.sh "$DIST_DIR/dist.optimized.zip"
 
