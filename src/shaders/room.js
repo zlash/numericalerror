@@ -4,9 +4,27 @@ const VSRoom = `
   uniform mat4 uProjectionMatrix;
 
   varying vec2 vUvs;
+  varying vec4 vViewVector;
+
+  mat4 matInverse( mat4 m )
+{
+	return mat4(
+        m[0][0], m[1][0], m[2][0], 0.0,
+        m[0][1], m[1][1], m[2][1], 0.0,
+        m[0][2], m[1][2], m[2][2], 0.0,
+        -dot(m[0].xyz,m[3].xyz),
+        -dot(m[1].xyz,m[3].xyz),
+        -dot(m[2].xyz,m[3].xyz),
+        1.0 );
+}
+
 
   void main() {
     vUvs = (aVertexPosition.xy+vec2(1.0))*0.5;
+
+    vViewVector = matInverse(uProjectionMatrix) * vec4(aVertexPosition.xy,1.0,1.0);
+    vViewVector/=vViewVector.w;
+
     gl_Position = vec4(aVertexPosition.xy,0.0,1.0);
   }
 `;
@@ -14,6 +32,7 @@ const VSRoom = `
 const FSRoom = `
 precision highp float;
 varying vec2 vUvs;
+varying vec4 vViewVector;
 
 uniform mat4 uModelViewMatrix;
 
@@ -71,14 +90,6 @@ float sdfWall(vec3 pos) {
     return sdfOpIntersection(sdfOpSmoothUnion(d,bricksD,0.05),sdfBox(pos,vec3(1.0,1.0,1.0)));
 }
 
-
-/*
-float sdBoxes( vec3 p, vec3 b )
-{
-    vec3 c =vec3(1.6,1.6,0.0);
-    vec3 q = mod(p,c)-0.5*c;
-    return sdBox(q,b);
-}*/
 
 vec2 room(vec3 pos)
 {
@@ -138,9 +149,12 @@ void main() {
     vec2 mt;
     float t = 0.1;
     mat4 invModelView = matInverse(uModelViewMatrix);
+
+    vec3 view = normalize(vViewVector.xyz);
+
     for( int i=0; i<64; i++ )
     {
-        p = vec3(sensorSize*(vUvs*2.0-1.0),0.0)+vec3(0.0,0.0,-1.0)*t;
+        p = view*t;
         p = vec3(invModelView * vec4(p,1.0));
         mt = room(p);
         float h = mt.x;

@@ -23,7 +23,7 @@ function createQuad(gl) {
 }
 
 let prevTMs = 0;
-let pos = [0, 0, 3];
+let pos = [0, 1, 3];
 let viewV = [0, 0, -1];
 
 function render(tMs) {
@@ -41,6 +41,7 @@ function render(tMs) {
         false,
         0,
         0);
+
     gl.enableVertexAttribArray(gameRenderState.avertexPosition);
 
     gl.useProgram(gameRenderState.shader);
@@ -56,25 +57,37 @@ function render(tMs) {
     //let viewV = [Math.sin(tMs*0.4),Math.cos(tMs*0.4),-1];
 
     const mv = dTimeMs;
+    let movement = v3Scale(viewV, dTimeMs);
+    let side = v3Cross(viewV, [0, 1, 0]);
+    side = v3Scale(v3Normalize(side), dTimeMs);
+
     if (isKeyDown(KeyCodeUp)) {
-        pos = v3Add(pos, v3Scale(viewV, dTimeMs), pos)
+        pos = v3Add(pos, movement, pos);
     }
     if (isKeyDown(KeyCodeDown)) {
-        pos = v3Subtract(pos, v3Scale(viewV, dTimeMs), pos)
+        pos = v3Subtract(pos, movement, pos);
     }
-    /*if (isKeyDown(KeyCodeLeft)) {
-        pos[0] -= mv;
+    if (isKeyDown(KeyCodeLeft)) {
+        pos = v3Subtract(pos, side, pos);
     }
     if (isKeyDown(KeyCodeRight)) {
-        pos[0] += mv;
-    }*/
+        pos = v3Add(pos, side, pos);
+    }
 
     let modelView = m4LookAt(pos, v3Add(pos, viewV), [0, 1, 0]);
+
+    let projection = m4PerspectiveFov(0.5 * Math.PI, gameRenderState.gl.canvas.width, gameRenderState.gl.canvas.height, 0.1, 100);
 
     gl.uniformMatrix4fv(
         gameRenderState.uModelViewMatrix,
         false,
         modelView);
+
+    gl.uniformMatrix4fv(
+        gameRenderState.uProjectionMatrix,
+        false,
+        projection);
+
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
@@ -100,7 +113,7 @@ function init() {
     let gl = canvas.getContext("webgl");
     gameRenderState.gl = gl;
 
-    canvas.width = 800;
+    canvas.width = 600;
     canvas.height = 600;
     resizeViewport();
 
