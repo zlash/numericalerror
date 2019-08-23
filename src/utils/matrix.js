@@ -20,6 +20,19 @@ function m4Multiply(m4A, m4B, result = m4Identity()) {
     return result;
 }
 
+
+function m4v3Multiply(m4a, v3a, w, result = v3Empty()) {
+    let v = [...v3a, w];
+    for (let x = 0; x < 3; x++) {
+        result[x] = 0.0;
+        for (let i = 0; i < 4; i++) {
+            result[x] += m4a[i * 4 + x] * v[i];
+        }
+    }
+    return result;
+}
+
+
 function m4AxisAngleRotation(v3Axis, angle, result = m4Identity()) {
 
     const ct = Math.cos(angle);

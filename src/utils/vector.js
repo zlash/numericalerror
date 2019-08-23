@@ -16,6 +16,13 @@ function v3Subtract(v3a, v3b, result = v3Empty()) {
     return result;
 }
 
+function v3Scale(v3a, scale, result = v3Empty()) {
+    result[0] = v3a[0] * scale;
+    result[1] = v3a[1] * scale;
+    result[2] = v3a[2] * scale;
+    return result;
+}
+
 function v3Dot(v3a, v3b) {
     return v3a[0] * v3b[0] + v3a[1] * v3b[1] + v3a[2] * v3b[2];
 }
