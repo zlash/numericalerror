@@ -76,7 +76,7 @@ function render(tMs) {
 
     let modelView = m4LookAt(pos, v3Add(pos, viewV), [0, 1, 0]);
 
-    let projection = m4PerspectiveFov(0.5 * Math.PI, gameRenderState.gl.canvas.width, gameRenderState.gl.canvas.height, 0.1, 100);
+    let projection = m4PerspectiveFov(0.5 * Math.PI, gameRenderState.gl.canvas.height, gameRenderState.gl.canvas.width, 0.1, 100);
 
     gl.uniformMatrix4fv(
         gameRenderState.uModelViewMatrix,
@@ -113,7 +113,7 @@ function init() {
     let gl = canvas.getContext("webgl");
     gameRenderState.gl = gl;
 
-    canvas.width = 600;
+    canvas.width = 800;
     canvas.height = 600;
     resizeViewport();
 

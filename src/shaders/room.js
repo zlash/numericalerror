@@ -167,7 +167,7 @@ void main() {
         if(mt.y>0.0) {
             col = vec3(1.0,0.0,0.0);
         }else{
-        col = vec3(0.6);
+            col = vec3(0.6);
         }
         vec3 n = calcNormal(p);
 
