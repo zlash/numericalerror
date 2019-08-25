@@ -2,6 +2,18 @@
 // Init
 // 
 
+const sampleRoom = [
+    0.0, 3.0,
+
+    3, -3,
+    -3, -3,
+    -5, 0,
+    -3, 3,
+    3, 3,
+    5, 0
+];
+
+
 let gameRenderState = {};
 
 function createQuad(gl) {
@@ -23,7 +35,7 @@ function createQuad(gl) {
 }
 
 let prevTMs = 0;
-let pos = [0, 1, 3];
+let pos = [0, 1, 0];
 let viewV = [0, 0, -1];
 
 function render(tMs) {
@@ -75,6 +87,7 @@ function render(tMs) {
     }
 
     let modelView = m4LookAt(pos, v3Add(pos, viewV), [0, 1, 0]);
+    //let modelView = m4LookAt([0,7,0], [0,0,0], [0, 0, -1]);
 
     let projection = m4PerspectiveFov(0.5 * Math.PI, gameRenderState.gl.canvas.height, gameRenderState.gl.canvas.width, 0.1, 100);
 
@@ -130,6 +143,8 @@ function init() {
     gameRenderState.shader = shader;
 
     createQuad(gl);
+
+    console.log(buildRoomSdf(sampleRoom));
 
     setupInputEventListeners();
 

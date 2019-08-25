@@ -32,6 +32,13 @@ function m4v3Multiply(m4a, v3a, w, result = v3Empty()) {
     return result;
 }
 
+function m4Translation(v3Offset, result = m4Identity()) {
+    result[12] = v3Offset[0];
+    result[13] = v3Offset[1];
+    result[14] = v3Offset[2];
+    return result;
+}
+
 
 function m4AxisAngleRotation(v3Axis, angle, result = m4Identity()) {
 
@@ -89,4 +96,8 @@ function m4PerspectiveFov(fov, width, height, zNear, zFar, result = m4Identity()
     result[11] = - 1.0;
     result[14] = - (2.0 * zFar * zNear) / (zFar - zNear);
     return result;
+}
+
+function m4ToStrMat4(m) {
+    return `mat4(${m.map((x) => { return numberToStringWithDecimals(x); }).join(",")})`;
 }

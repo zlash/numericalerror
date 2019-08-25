@@ -34,8 +34,7 @@ float sdfBrick4x4(vec3 pos)
 {
     const float separation = 0.95;
     vec3 repeat = sdfOpRepeat(pos, vec3(brickSize.xy * 4.0, 0.0));
-    return sdfRoundedBox(
-        repeat, brickSize * vec3(0.8 * separation, 0.5 * separation, 1.0), 0.05);
+    return sdfRoundedBox( repeat, brickSize * vec3(0.8 * separation, 0.5 * separation, 1.0), 0.05);
 }
 
 float sdfBrickRow(vec3 pos)
@@ -44,26 +43,15 @@ float sdfBrickRow(vec3 pos)
         sdfBrick4x4(pos - vec3(brickSize.x * 2.0, 0.0, 0.0)));
 }
 
-float sdfWall(vec3 pos)
+float sdfWall(vec3 pos, vec2 dim)
 {
-
     float d = sdfPlane(pos, vec3(0.0, 0.0, 1.0));
 
     float bricksD = min(sdfBrickRow(pos),
         sdfBrickRow(pos - vec3(brickSize.x, brickSize.y * 2.0, 0.0)));
 
-    return sdfOpIntersection(sdfOpSmoothUnion(d, bricksD, 0.05),
-        sdfBox(pos, vec3(1.0, 1.0, 1.0)));
-}
-
-vec2 room(vec3 pos) { return vec2(sdfWall(pos), -1.0); }
-
-vec3 calcNormal(in vec3 pos)
-{
-    const float ep = 0.0001;
-    vec2 e = vec2(1.0, -1.0) * 0.5773;
-    return normalize(
-        e.xyy * room(pos + e.xyy * ep).x + e.yyx * room(pos + e.yyx * ep).x + e.yxy * room(pos + e.yxy * ep).x + e.xxx * room(pos + e.xxx * ep).x);
+    return sdfOpIntersection(min(d, bricksD), sdfBox(pos, vec3(dim, 0.5)));
+    //return sdfOpIntersection(d, sdfBox(pos, vec3(dim, 0.5)));
 }
 
 mat4 matInverse(mat4 m)
@@ -71,6 +59,21 @@ mat4 matInverse(mat4 m)
     return mat4(m[0][0], m[1][0], m[2][0], 0.0, m[0][1], m[1][1], m[2][1], 0.0,
         m[0][2], m[1][2], m[2][2], 0.0, -dot(m[0].xyz, m[3].xyz),
         -dot(m[1].xyz, m[3].xyz), -dot(m[2].xyz, m[3].xyz), 1.0);
+}
+
+//vec2 room(vec3 pos) { return vec2(sdfWall(pos,vec2(1.0,1.0)), -1.0); }
+vec2 room(vec3 pos)
+{
+    float d = min(min(min(min(min(sdfWall(vec3(matInverse(mat4(1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,-3.0,1.0))*vec4(pos,1.0)), vec2(3.0,1.0)),sdfWall(vec3(matInverse(mat4(0.5547001962252291,0.0,-0.8320502943378436,0.0,0.0,1.0,0.0,0.0,0.8320502943378436,0.0,0.5547001962252291,0.0,-4.0,0.0,-1.4999999999999998,1.0))*vec4(pos,1.0)), vec2(1.8027756377319946,1.0))),sdfWall(vec3(matInverse(mat4(-0.5547001962252293,0.0,-0.8320502943378436,0.0,0.0,1.0,0.0,0.0,0.8320502943378436,0.0,-0.5547001962252293,0.0,-4.0,0.0,1.5000000000000002,1.0))*vec4(pos,1.0)), vec2(1.8027756377319946,1.0))),sdfWall(vec3(matInverse(mat4(-1.0,0.0,1.2246467991473532e-16,0.0,0.0,1.0,0.0,0.0,-1.2246467991473532e-16,0.0,-1.0,0.0,0.0,0.0,3.0000000000000004,1.0))*vec4(pos,1.0)), vec2(3.0,1.0))),sdfWall(vec3(matInverse(mat4(-0.5547001962252293,0.0,0.8320502943378436,0.0,0.0,1.0,0.0,0.0,-0.8320502943378436,0.0,-0.5547001962252293,0.0,4.0,0.0,1.4999999999999998,1.0))*vec4(pos,1.0)), vec2(1.8027756377319946,1.0))),sdfWall(vec3(matInverse(mat4(0.5547001962252291,0.0,0.8320502943378436,0.0,0.0,1.0,0.0,0.0,-0.8320502943378436,0.0,0.5547001962252291,0.0,4.0,0.0,-1.5000000000000002,1.0))*vec4(pos,1.0)), vec2(1.8027756377319946,1.0)));
+    return vec2(d, -1.0);
+}
+
+vec3 calcNormal(in vec3 pos)
+{
+    const float ep = 0.0001;
+    vec2 e = vec2(1.0, -1.0) * 0.5773;
+    return normalize(
+        e.xyy * room(pos + e.xyy * ep).x + e.yyx * room(pos + e.yyx * ep).x + e.yxy * room(pos + e.yxy * ep).x + e.xxx * room(pos + e.xxx * ep).x);
 }
 
 float shadow(vec3 ro, vec3 rd, float mint, float tmax)
@@ -123,7 +126,7 @@ void main()
 
         float att = 1.0;
         att *= max(0.0, dot(light, n));
-        att *= shadow(p, light, 0.05, 20.0);
+        //att *= shadow(p, light, 0.05, 20.0);
         col *= min(1.0, 0.4 + att);
     }
 
