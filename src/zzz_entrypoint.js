@@ -2,16 +2,25 @@
 // Init
 // 
 
-const sampleRoom = [
+const sampleRooms = [[
     0.0, 3.0,
 
-    3, -3,
-    -3, -3,
-    -5, 0,
-    -3, 3,
-    3, 3,
-    5, 0
-];
+    [3, -3],
+    [1.5, -3, 1], // Portal
+    [-1.5, -3],
+    [-3, -3],
+    [-5, 0],
+    [-3, 3],
+    [3, 3],
+    [5, 0]
+], [
+
+    0.5, 3.0,
+    [1.5, -3],
+    [1.5, -7],
+    [-1.5, -7],
+    [-1.5, -3, 0]
+]];
 
 
 let gameRenderState = {};
@@ -35,7 +44,7 @@ function createQuad(gl) {
 }
 
 let prevTMs = 0;
-let pos = [0, 1, 0];
+let pos = [0, 1.8, 0];
 let viewV = [0, 0, -1];
 
 function render(tMs) {
@@ -89,7 +98,7 @@ function render(tMs) {
     let modelView = m4LookAt(pos, v3Add(pos, viewV), [0, 1, 0]);
     //let modelView = m4LookAt([0,7,0], [0,0,0], [0, 0, -1]);
 
-    let projection = m4PerspectiveFov(0.5 * Math.PI, gameRenderState.gl.canvas.height, gameRenderState.gl.canvas.width, 0.1, 100);
+    let projection = m4PerspectiveFov(65 * Math.PI / 180, gameRenderState.gl.canvas.height, gameRenderState.gl.canvas.width, 0.1, 100);
 
     gl.uniformMatrix4fv(
         gameRenderState.uModelViewMatrix,
@@ -120,21 +129,28 @@ function requestCanvasPointerLock() {
 
 function init() {
 
+    const qualityRatio = 0.75;
+    const canvasScale = 1.0;
+
     console.log("js12k2019 - Debug mode [ON]");
+
 
     const canvas = document.createElement("canvas");
     let gl = canvas.getContext("webgl");
     gameRenderState.gl = gl;
 
-    canvas.width = 800;
-    canvas.height = 600;
+    canvas.width = 800*canvasScale*qualityRatio;
+    canvas.height = 600*canvasScale*qualityRatio;
     resizeViewport();
+
+
+    canvas.style.width = `${canvas.width/qualityRatio}px`;
 
     document.body.appendChild(canvas);
 
     gl.clearColor(0.0, 1.0, 0.0, 1.0);
 
-    let shader = createProgram(gl, roomVS, buildRoomFS(buildRoomSdf(sampleRoom)));
+    let shader = createProgram(gl, roomVS, buildRoomFS(buildRoomsSdf(sampleRooms)));
 
     gameRenderState.avertexPosition = gl.getAttribLocation(shader, 'aVertexPosition');
     gameRenderState.uProjectionMatrix = gl.getUniformLocation(shader, 'uProjectionMatrix');
