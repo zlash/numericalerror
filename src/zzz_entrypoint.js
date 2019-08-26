@@ -2,8 +2,8 @@
 // Init
 // 
 
-const sampleRooms = [[
-    0.0, 2.4,
+let sampleRooms = [[
+    0.0, 5,
 
     [3, -3],
     [1.5, -3, 1], // Portal
@@ -13,13 +13,6 @@ const sampleRooms = [[
     [-3, 3],
     [3, 3],
     [5, 0]
-], [
-
-    1.0, 3.0,
-    [1.5, -3],
-    [1.5, -7],
-    [-1.5, -7],
-    [-1.5, -3, 0]
 ]];
 
 
@@ -132,6 +125,23 @@ function init() {
     const qualityRatio = 0.75;
     const canvasScale = 1.0;
 
+
+    //DELETEME
+    //stairs
+    const stairsRooms = 2;
+    for (let i = 0; i < stairsRooms; i++) {
+        let len = (i >= stairsRooms - 1) ? 1 : 0.5;
+        let next = (i >= stairsRooms - 1) ? undefined : (sampleRooms.length + 1);
+        sampleRooms.push([
+            0.30 * (i + 1), 5,
+            [1.5, -3],
+            [1.5, -3 - (i + 1) * len, next],
+            [-1.5, -3 - (i + 1) * len],
+            [-1.5, -3, sampleRooms.length - 1]
+        ]);
+    }
+
+
     console.log("js12k2019 - Debug mode [ON]");
 
 
@@ -139,12 +149,12 @@ function init() {
     let gl = canvas.getContext("webgl");
     gameRenderState.gl = gl;
 
-    canvas.width = 800*canvasScale*qualityRatio;
-    canvas.height = 600*canvasScale*qualityRatio;
+    canvas.width = 800 * canvasScale * qualityRatio;
+    canvas.height = 600 * canvasScale * qualityRatio;
     resizeViewport();
 
 
-    canvas.style.width = `${canvas.width/qualityRatio}px`;
+    canvas.style.width = `${canvas.width / qualityRatio}px`;
 
     document.body.appendChild(canvas);
 

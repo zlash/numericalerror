@@ -61,7 +61,7 @@ function buildRoomSdf(room, rooms) {
 }
 
 function buildRoomsSdf(rooms) {
-    return `min(${buildRoomSdf(rooms[0], rooms)},${buildRoomSdf(rooms[1], rooms)})`;
+    return rooms.map((x)=>{ return buildRoomSdf(x, rooms);}).reduce((acc, cv) => { return `min(${acc},${cv})` });
 }
 
 function buildRoomFS(roomSdf) {
