@@ -32,3 +32,8 @@ function createProgram(gl, vsSource, fsSource) {
 
     return shaderProgram;
 }
+
+function prependPrecision(src) {
+    return `precision highp float;
+${src}`;
+}

@@ -18,7 +18,7 @@ varName() {
 minifyShaders() {
     for FN in $(find "$SRC_DIR" -name "*${1}"); do
         VARNAME=$(varName "$FN" "$1" "$2")
-        echo "let $VARNAME = \`precision highp float;"
+        echo -n "let $VARNAME = \`"
         mono "$DIR/shader_minifier.exe" --preserve-all-globals --preserve-externals --format none -o - "$FN"
         echo "\`;"
     done

@@ -134,7 +134,7 @@ function init() {
 
     gl.clearColor(0.0, 1.0, 0.0, 1.0);
 
-    var shader = createProgram(gl, roomVS, roomFS);
+    let shader = createProgram(gl, roomVS, buildRoomFS(buildRoomSdf(sampleRoom)));
 
     gameRenderState.avertexPosition = gl.getAttribLocation(shader, 'aVertexPosition');
     gameRenderState.uProjectionMatrix = gl.getUniformLocation(shader, 'uProjectionMatrix');
@@ -144,7 +144,6 @@ function init() {
 
     createQuad(gl);
 
-    console.log(buildRoomSdf(sampleRoom));
 
     setupInputEventListeners();
 

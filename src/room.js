@@ -32,3 +32,24 @@ function buildRoomSdf(room) {
 
     return walls.reduce((acc, cv) => { return `min(${acc},${cv})` });
 }
+
+function buildRoomFS(roomSdf) {
+    return prependPrecision(`
+    ${roomHeaderFS}
+    ${roomFunctionsFS}
+    mat4 matInverse(mat4 m)
+    {
+        return mat4(m[0][0], m[1][0], m[2][0], 0.0, m[0][1], m[1][1], m[2][1], 0.0,
+            m[0][2], m[1][2], m[2][2], 0.0, -dot(m[0].xyz, m[3].xyz),
+            -dot(m[1].xyz, m[3].xyz), -dot(m[2].xyz, m[3].xyz), 1.0);
+    }
+
+    vec2 room(vec3 pos)
+    {
+        float d = ${roomSdf};
+        return vec2(d, -1.0);
+    }
+
+    ${roomRenderFS}
+    `);
+}

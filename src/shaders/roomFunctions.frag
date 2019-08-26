@@ -1,5 +1,8 @@
 
-float sdfPlane(vec3 pos, vec3 n) { return dot(pos, n); }
+float sdfPlane(vec3 pos, vec3 n)
+{
+    return dot(pos, n);
+}
 
 float sdfBox(vec3 p, vec3 b)
 {
@@ -30,8 +33,7 @@ float sdfBrick4x4(vec3 pos)
 {
     const float separation = 0.95;
     vec3 repeat = sdfOpRepeat(pos, vec3(brickSize.xy * 4.0, 0.0));
-    return sdfRoundedBox(
-        repeat, brickSize * vec3(0.8 * separation, 0.5 * separation, 1.0), 0.05);
+    return sdfRoundedBox(repeat, brickSize * vec3(0.8 * separation, 0.5 * separation, 1.0), 0.05);
 }
 
 float sdfBrickRow(vec3 pos)
@@ -47,6 +49,6 @@ float sdfWall(vec3 pos, vec2 dim)
     float bricksD = min(sdfBrickRow(pos),
         sdfBrickRow(pos - vec3(brickSize.x, brickSize.y * 2.0, 0.0)));
 
-    //return sdfOpIntersection(sdfOpSmoothUnion(d, bricksD, 0.05), sdfBox(pos, dim));
-    return sdfOpIntersection(d, sdfBox(pos, vec3(dim, 2.0)));
+    return sdfOpIntersection(min(d, bricksD), sdfBox(pos, vec3(dim, 0.5)));
+    //return sdfOpIntersection(d, sdfBox(pos, vec3(dim, 0.5)));
 }
