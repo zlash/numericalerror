@@ -4,7 +4,21 @@
     ...N 2d points that describe a convex polygon
 */
 
-function buildRoomSdf(room) {
+function buildWall(corner, side, len, floor, roomHeight) {
+    /*
+        translate wall to corner
+        rotate by side angle
+        translate to final position
+    */
+    let m = m4Translation(corner);
+    m = m4Multiply(m, m4AxisAngleRotation([0, 1, 0], Math.atan2(-side[2], side[0])));
+    m = m4Multiply(m, m4Translation([len * 0.5, 0.0, 0.0]));
+    m = m4Multiply(m, m4Translation([0, roomHeight * 0.5 + floor, 0]));
+
+    return `sdfWall(vec3(matInverse(${m4ToStrMat4(m)})*vec4(pos,1.0)), vec2(${numberToStringWithDecimals(len * 0.5)},${numberToStringWithDecimals(roomHeight * 0.5)}))`;
+}
+
+function buildRoomSdf(room, rooms) {
     //For each wall, add an sdf wall with the needed transformation
     let walls = [];
     let points = [];
@@ -12,31 +26,33 @@ function buildRoomSdf(room) {
     let roomHeight = room[1] - room[0];
 
     for (let i = 2; i < room.length; i++) {
-        points.push([room[i][0], roomHeight * 0.5 + room[0], room[i][1]]);
+        points.push([room[i][0], 0, room[i][1]]);
         metadata.push({ portal: room[i][2] });
     }
 
     points.push(points[0]);
 
     for (let i = 0; i < points.length - 1; i++) {
-        if(metadata[i].portal!=undefined) {
-            continue;
-        }
 
         let side = v3Subtract(points[i], points[i + 1]);
         let len = v3Length(side);
 
-        /*
-            translate wall to corner
-            rotate by side angle
-            translate to final position
-        */
+        if (metadata[i].portal == undefined) {
+            walls.push(buildWall(points[i + 1], side, len, room[0], roomHeight));
+        } else {
+            let connectingRoom = rooms[metadata[i].portal];
+            //floor wall
+            if (connectingRoom[0] > room[0]) {
+                walls.push(buildWall(points[i + 1], side, len, room[0], connectingRoom[0]-room[0]));
+            }
 
-        let m = m4Translation(points[i + 1]);
-        m = m4Multiply(m, m4AxisAngleRotation([0, 1, 0], Math.atan2(-side[2], side[0])));
-        m = m4Multiply(m, m4Translation([len * 0.5, 0.0, 0.0]));
+            //ceil wall
+            if (room[1] > connectingRoom[1]) {
+                let ch = room[1] - connectingRoom[1];
+                walls.push(buildWall(points[i + 1], side, len, room[1] - ch, ch));
+            }
+        }
 
-        walls.push(`sdfWall(vec3(matInverse(${m4ToStrMat4(m)})*vec4(pos,1.0)), vec2(${numberToStringWithDecimals(len * 0.5)},${numberToStringWithDecimals(roomHeight * 0.5)}))`);
     }
 
 
@@ -45,7 +61,7 @@ function buildRoomSdf(room) {
 }
 
 function buildRoomsSdf(rooms) {
-    return `min(${ buildRoomSdf(rooms[0])},${ buildRoomSdf(rooms[1])})`;
+    return `min(${buildRoomSdf(rooms[0], rooms)},${buildRoomSdf(rooms[1], rooms)})`;
 }
 
 function buildRoomFS(roomSdf) {
