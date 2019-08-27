@@ -47,18 +47,6 @@ function render(tMs) {
     prevTMs = tMs;
 
     gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.bindBuffer(gl.ARRAY_BUFFER, gameRenderState.quadBuffer);
-    gl.vertexAttribPointer(
-        gameRenderState.avertexPosition,
-        2,
-        gl.FLOAT,
-        false,
-        0,
-        0);
-
-    gl.enableVertexAttribArray(gameRenderState.avertexPosition);
-
-    gl.useProgram(gameRenderState.shader);
 
     updateMouseDeltas();
 
@@ -67,8 +55,6 @@ function render(tMs) {
         viewV = m4v3Multiply(rot, viewV, 0.0);
         viewV = v3Normalize(viewV);
     }
-
-    //let viewV = [Math.sin(tMs*0.4),Math.cos(tMs*0.4),-1];
 
     const mv = dTimeMs;
     let movement = v3Scale(viewV, dTimeMs);
@@ -91,22 +77,31 @@ function render(tMs) {
     let modelView = m4LookAt(pos, v3Add(pos, viewV), [0, 1, 0]);
     //let modelView = m4LookAt([0,7,0], [0,0,0], [0, 0, -1]);
 
-    let projection = m4PerspectiveFov(65 * Math.PI / 180, gameRenderState.gl.canvas.height, gameRenderState.gl.canvas.width, 0.1, 100);
+    let projection = m4PerspectiveFov(55 * Math.PI / 180, gameRenderState.gl.canvas.height, gameRenderState.gl.canvas.width, 0.1, 100);
 
-    gl.uniformMatrix4fv(
-        gameRenderState.uModelViewMatrix,
-        false,
-        modelView);
+    for (let room of gameRenderState.roomSet) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, gameRenderState.quadBuffer);
+        gl.vertexAttribPointer(room.aVertexPosition, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(room.aVertexPosition);
+        gl.useProgram(room.shader);
 
-    gl.uniformMatrix4fv(
-        gameRenderState.uProjectionMatrix,
-        false,
-        projection);
+        gl.uniformMatrix4fv(
+            room.uModelViewMatrix,
+            false,
+            modelView);
 
-    gl.uniform1i(gameRenderState.uZero, tMs);
+        gl.uniformMatrix4fv(
+            room.uProjectionMatrix,
+            false,
+            projection);
+
+        gl.uniform1i(room.uZero, tMs);
 
 
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
+
+
 
     requestAnimationFrame(render);
 
@@ -124,13 +119,13 @@ function requestCanvasPointerLock() {
 
 function init() {
 
-    const qualityRatio = 0.75;
+    const qualityRatio = 0.5;
     const canvasScale = 1.0;
 
 
     //DELETEME
     //stairs
-    const stairsRooms = 2;
+    const stairsRooms = 10;
     for (let i = 0; i < stairsRooms; i++) {
         let len = (i >= stairsRooms - 1) ? 1 : 0.5;
         let next = (i >= stairsRooms - 1) ? undefined : (sampleRooms.length + 1);
@@ -162,19 +157,9 @@ function init() {
 
     gl.clearColor(0.0, 1.0, 0.0, 1.0);
 
-    let theRoomsFS = buildRoomFS(buildRoomsSdf(sampleRooms));
-    let shader = createProgram(gl, prependPrecisionAndVersion(roomVS), theRoomsFS);
-
-    gameRenderState.avertexPosition = gl.getAttribLocation(shader, 'aVertexPosition');
-    gameRenderState.uProjectionMatrix = gl.getUniformLocation(shader, 'uProjectionMatrix');
-    gameRenderState.uModelViewMatrix = gl.getUniformLocation(shader, 'uModelViewMatrix');
-
-    gameRenderState.uZero = gl.getUniformLocation(shader, 'uZero');
-
-    gameRenderState.shader = shader;
+    gameRenderState.roomSet = buildRoomsSdf(gl, sampleRooms);
 
     createQuad(gl);
-
 
     setupInputEventListeners();
 

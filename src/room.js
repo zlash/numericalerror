@@ -43,7 +43,7 @@ function buildRoomSdf(room, rooms) {
             let connectingRoom = rooms[metadata[i].portal];
             //floor wall
             if (connectingRoom[0] > room[0]) {
-                walls.push(buildWall(points[i + 1], side, len, room[0], connectingRoom[0]-room[0]));
+                walls.push(buildWall(points[i + 1], side, len, room[0], connectingRoom[0] - room[0]));
             }
 
             //ceil wall
@@ -60,11 +60,27 @@ function buildRoomSdf(room, rooms) {
     return walls.reduce((acc, cv) => { return `min(${acc},${cv})` });
 }
 
-function buildRoomsSdf(rooms) {
-    return rooms.map((x)=>{ return buildRoomSdf(x, rooms);}).reduce((acc, cv) => { return `min(${acc},${cv})` });
+function buildRoomsSdf(gl, rooms) {
+    let roomSet = [];
+
+    for (let room of rooms) {
+        let roomData = {};
+        let fs = buildRoomFS(buildRoomSdf(room, rooms));
+
+        roomData.shader = createProgram(gl, prependPrecisionAndVersion(roomVS), fs);
+
+        roomData.aVertexPosition = gl.getAttribLocation(roomData.shader, 'aVertexPosition');
+        roomData.uProjectionMatrix = gl.getUniformLocation(roomData.shader, 'uProjectionMatrix');
+        roomData.uModelViewMatrix = gl.getUniformLocation(roomData.shader, 'uModelViewMatrix');
+        roomData.uZero = gl.getUniformLocation(roomData.shader, 'uZero');
+
+        roomSet.push(roomData);
+    }
+
+    return roomSet;
 }
- 
-    //Using trick from http://iquilezles.org/www/articles/normalsSDF/normalsSDF.htm
+
+//Using trick from http://iquilezles.org/www/articles/normalsSDF/normalsSDF.htm
 function buildRoomFS(roomSdf) {
     return prependPrecisionAndVersion(`
     ${roomHeaderFS}
