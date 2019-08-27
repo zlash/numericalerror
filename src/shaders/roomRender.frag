@@ -51,6 +51,8 @@ void main()
         att *= max(0.0, dot(light, n));
         //att *= shadow(p, light, 0.05, 20.0);
         col *= min(1.0, 0.4 + att);
+    } else {
+        discard;
     }
 
     fragColor = vec4(col.xyz, 1.0);
