@@ -63,9 +63,10 @@ function buildRoomSdf(room, rooms) {
 function buildRoomsSdf(rooms) {
     return rooms.map((x)=>{ return buildRoomSdf(x, rooms);}).reduce((acc, cv) => { return `min(${acc},${cv})` });
 }
-
+ 
+    //Using trick from http://iquilezles.org/www/articles/normalsSDF/normalsSDF.htm
 function buildRoomFS(roomSdf) {
-    return prependPrecision(`
+    return prependPrecisionAndVersion(`
     ${roomHeaderFS}
     ${roomFunctionsFS}
     mat4 matInverse(mat4 m)
@@ -81,6 +82,19 @@ function buildRoomFS(roomSdf) {
         return vec2(d, -1.0);
     }
 
+    #define ZERO min(uZero,0)
+
+    vec3 calcNormal( in vec3 pos )
+    {
+        vec3 n = vec3(0.0);
+        for( int i=ZERO; i<4; i++ )
+        {
+            vec3 e = 0.5773*(2.0*vec3((((i+3)>>1)&1),((i>>1)&1),(i&1))-1.0);
+            n += e*room(pos+0.0005*e).x;
+        }
+        return normalize(n);
+    }
+    
     ${roomRenderFS}
     `);
 }

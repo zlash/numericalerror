@@ -1,9 +1,9 @@
-attribute vec4 aVertexPosition;
+in vec4 aVertexPosition;
 
 uniform mat4 uProjectionMatrix;
 
-varying vec2 vUvs;
-varying vec4 vViewVector;
+out vec2 vUvs;
+out vec4 vViewVector;
 
 mat4 matInverse(mat4 m)
 {

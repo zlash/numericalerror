@@ -1,12 +1,4 @@
 
-vec3 calcNormal(in vec3 pos)
-{
-    const float ep = 0.0001;
-    vec2 e = vec2(1.0, -1.0) * 0.5773;
-    return normalize(
-        e.xyy * room(pos + e.xyy * ep).x + e.yyx * room(pos + e.yyx * ep).x + e.yxy * room(pos + e.yxy * ep).x + e.xxx * room(pos + e.xxx * ep).x);
-}
-
 float shadow(vec3 ro, vec3 rd, float mint, float tmax)
 {
     float res = 1.0;
@@ -61,5 +53,5 @@ void main()
         col *= min(1.0, 0.4 + att);
     }
 
-    gl_FragColor = vec4(col.xyz, 1.0);
+    fragColor = vec4(col.xyz, 1.0);
 }

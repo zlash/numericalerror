@@ -103,6 +103,8 @@ function render(tMs) {
         false,
         projection);
 
+    gl.uniform1i(gameRenderState.uZero, tMs);
+
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
@@ -146,7 +148,7 @@ function init() {
 
 
     const canvas = document.createElement("canvas");
-    let gl = canvas.getContext("webgl");
+    let gl = canvas.getContext("webgl2");
     gameRenderState.gl = gl;
 
     canvas.width = 800 * canvasScale * qualityRatio;
@@ -160,11 +162,14 @@ function init() {
 
     gl.clearColor(0.0, 1.0, 0.0, 1.0);
 
-    let shader = createProgram(gl, roomVS, buildRoomFS(buildRoomsSdf(sampleRooms)));
+    let theRoomsFS = buildRoomFS(buildRoomsSdf(sampleRooms));
+    let shader = createProgram(gl, prependPrecisionAndVersion(roomVS), theRoomsFS);
 
     gameRenderState.avertexPosition = gl.getAttribLocation(shader, 'aVertexPosition');
     gameRenderState.uProjectionMatrix = gl.getUniformLocation(shader, 'uProjectionMatrix');
     gameRenderState.uModelViewMatrix = gl.getUniformLocation(shader, 'uModelViewMatrix');
+
+    gameRenderState.uZero = gl.getUniformLocation(shader, 'uZero');
 
     gameRenderState.shader = shader;
 

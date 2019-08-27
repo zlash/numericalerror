@@ -1,4 +1,8 @@
-varying vec2 vUvs;
-varying vec4 vViewVector;
+
+in vec2 vUvs;
+in vec4 vViewVector;
 
 uniform mat4 uModelViewMatrix;
+uniform int uZero;
+
+layout(location = 0) out vec4 fragColor;
