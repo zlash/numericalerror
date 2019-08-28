@@ -28,7 +28,7 @@ function buildRoomSdf(roomData, rooms) {
     for (let i = 0; i < points.length; i++) {
 
         let curPoint = points[i];
-        let nextPoint = points[(i == points.length - 1) ? 0 : (i+1)];
+        let nextPoint = points[(i == points.length - 1) ? 0 : (i + 1)];
 
         let side = v3Subtract(curPoint, nextPoint);
         let len = v3Length(side);
@@ -86,11 +86,25 @@ class RoomSet {
     }
 
 
-    roomFromPonint(point) {
-        for (let room of rooms) {
+    roomFromPoint(point) {
+        let floorPoint = [point[0], 0, point[2]];
+        for (let room of this.rooms) {
+            const points = room.points;
+            let angle = 0;
+            for (let i = 0; i < points.length; i++) {
+                let curPoint = points[i];
+                let nextPoint = points[(i == points.length - 1) ? 0 : (i + 1)];
 
+                let v1 = v3Normalize(v3Subtract(curPoint, floorPoint));
+                let v2 = v3Normalize(v3Subtract(nextPoint, floorPoint));
+                angle += Math.acos(v3Dot(v1, v2));
+            }
 
+            if(Math.abs(angle-Math.PI*2.0)<0.0001) {
+                return room;
+            }
         }
+        return undefined;
     }
 
 }

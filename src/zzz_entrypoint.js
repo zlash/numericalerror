@@ -74,6 +74,9 @@ function render(tMs) {
         pos = v3Add(pos, side, pos);
     }
 
+    let currentRoom = gameRenderState.roomSet.roomFromPoint(pos);
+    pos[1] = currentRoom.floor + 1.8;
+
     let modelView = m4LookAt(pos, v3Add(pos, viewV), [0, 1, 0]);
     //let modelView = m4LookAt([0,7,0], [0,0,0], [0, 0, -1]);
 
@@ -87,14 +90,14 @@ function render(tMs) {
         let currentRoom = preRenderSet.pop();
 
         //==> For each current room wall, if portal
-            // ==> Project and cull
-            // ==> If projection is inside view
-                //==> push to preRenderSet
+        // ==> Project and cull
+        // ==> If projection is inside view
+        //==> push to preRenderSet
 
         renderSet.unshift(currentRoom);
     }
 
-    
+
     for (let room of gameRenderState.roomSet.rooms) {
         gl.bindBuffer(gl.ARRAY_BUFFER, gameRenderState.quadBuffer);
         gl.vertexAttribPointer(room.aVertexPosition, 2, gl.FLOAT, false, 0, 0);
