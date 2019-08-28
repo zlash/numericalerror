@@ -14,7 +14,12 @@ echo "<!DOCTYPE html><p><script>${OUTPUT}</script>" > "$DIST_DIR/index.html"
 echo "<!DOCTYPE html><head><title>Debug</title></head><p><script>${OUTPUT_DBG}</script>" > "$DIST_DIR/index.debug.html"
 
 
-zip -9 "$DIST_DIR/dist.zip" "$DIST_DIR/index.html"
+zip -j -9 "$DIST_DIR/dist.zip" "$DIST_DIR/index.html"
 cp "$DIST_DIR/dist.zip" "$DIST_DIR/dist.optimized.zip"
-./build-scripts/optimize_zip.sh "$DIST_DIR/dist.optimized.zip"
+./build-scripts/optimize_file.sh -9 "$DIST_DIR/dist.optimized.zip"
 
+convert -interlace plane -depth 8 -size $(stat --printf="%s" $DIST_DIR/index.html)x1+0 gray:$DIST_DIR/index.html $DIST_DIR/dist.png
+./build-scripts/optimize_file.sh -9 "$DIST_DIR/dist.png"
+
+cwebp -lossless $DIST_DIR/dist.png -o $DIST_DIR/dist.webp
+./build-scripts/optimize_file.sh -9 "$DIST_DIR/dist.webp"

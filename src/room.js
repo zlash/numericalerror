@@ -4,7 +4,7 @@
     ...N 2d points that describe a convex polygon
 */
 
-function buildWall(corner, side, len, floor, roomHeight) {
+function buildWallMatrix(corner, side, len, floor, roomHeight) {
     /*
         translate wall to corner
         rotate by side angle
@@ -14,7 +14,11 @@ function buildWall(corner, side, len, floor, roomHeight) {
     m = m4Multiply(m, m4AxisAngleRotation([0, 1, 0], Math.atan2(-side[2], side[0])));
     m = m4Multiply(m, m4Translation([len * 0.5, 0.0, 0.0]));
     m = m4Multiply(m, m4Translation([0, roomHeight * 0.5 + floor, 0]));
+    return m;
+}
 
+function buildWall(corner, side, len, floor, roomHeight) {
+    let m = buildWallMatrix(corner, side, len, floor, roomHeight);
     return `sdfWall(vec3(matInverse(${m4ToStrMat4(m)})*vec4(pos,1.0)), vec2(${numberToStringWithDecimals(len * 0.5)},${numberToStringWithDecimals(roomHeight * 0.5)}))`;
 }
 
@@ -38,7 +42,7 @@ function buildRoomSdf(roomData, rooms) {
         } else {
             let connectingRoom = rooms[metadata[i].portal];
             //floor wall
-            if (connectingRoom[0] > roomData.floor) {
+            /*if (connectingRoom[0] > roomData.floor) {
                 walls.push(buildWall(nextPoint, side, len, roomData.floor, connectingRoom[0] - roomData.floor));
             }
 
@@ -46,7 +50,16 @@ function buildRoomSdf(roomData, rooms) {
             if (roomData.ceiling > connectingRoom[1]) {
                 let ch = roomData.ceiling - connectingRoom[1];
                 walls.push(buildWall(nextPoint, side, len, roomData.ceiling - ch, ch));
-            }
+            }*/
+
+            //Portal! 
+            let portalTop = Math.min(roomData.ceiling, connectingRoom[1]);
+            let portalBottom = Math.max(roomData.floor, connectingRoom[0]);
+            let portalHeight = portalTop - portalBottom;
+            let wallM = buildWallMatrix(nextPoint, side, len, portalBottom, portalHeight);
+            console.log(m4ToStrMat4(m4Scale([2, len * 0.5, 1])));
+            metadata[i].portalMatrix = m4Multiply(wallM, m4Scale([len * 0.5, portalHeight * 0.5, 0.5]));
+            walls.push(`sdfWall(vec3(matInverse(${m4ToStrMat4(metadata[i].portalMatrix)})*vec4(pos,1.0)),vec2(1.0,1.0))`);
         }
 
     }
@@ -100,7 +113,7 @@ class RoomSet {
                 angle += Math.acos(v3Dot(v1, v2));
             }
 
-            if(Math.abs(angle-Math.PI*2.0)<0.0001) {
+            if (Math.abs(angle - Math.PI * 2.0) < 0.0001) {
                 return room;
             }
         }

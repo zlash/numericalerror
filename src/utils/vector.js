@@ -1,3 +1,7 @@
+function v4Empty() {
+    return [0, 0, 0, 0];
+}
+
 function v3Empty() {
     return [0, 0, 0];
 }

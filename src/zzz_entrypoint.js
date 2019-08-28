@@ -61,6 +61,9 @@ function render(tMs) {
     let side = v3Cross(viewV, [0, 1, 0]);
     side = v3Scale(v3Normalize(side), dTimeMs);
 
+
+    let prePos = [...pos];
+
     if (isKeyDown(KeyCodeUp)) {
         pos = v3Add(pos, movement, pos);
     }
@@ -75,6 +78,11 @@ function render(tMs) {
     }
 
     let currentRoom = gameRenderState.roomSet.roomFromPoint(pos);
+    if (currentRoom == undefined) {
+        pos = prePos;
+        currentRoom = gameRenderState.roomSet.roomFromPoint(pos);
+    }
+
     pos[1] = currentRoom.floor + 1.8;
 
     let modelView = m4LookAt(pos, v3Add(pos, viewV), [0, 1, 0]);
@@ -82,23 +90,36 @@ function render(tMs) {
 
     let projection = m4PerspectiveFov(55 * Math.PI / 180, gameRenderState.gl.canvas.height, gameRenderState.gl.canvas.width, 0.1, 100);
 
-    let preRenderSet = [];
+
+    let pmv = m4Multiply(projection, modelView);
+
+    let preRenderSet = [currentRoom];
     let renderSet = [];
-    //==> Push camera room, move pos to current room floor, if not current room, revert movement (Punga walking collison sim)
 
     while (preRenderSet.length > 0) {
         let currentRoom = preRenderSet.pop();
 
-        //==> For each current room wall, if portal
-        // ==> Project and cull
-        // ==> If projection is inside view
-        //==> push to preRenderSet
+        const points = currentRoom.points;
+        for (let i = 0; i < points.length; i++) {
+            if (currentRoom.metadata[i].portal) {
+                let m = m4Multiply(pmv, currentRoom.metadata[i].portalMatrix);
+
+                let vertices = [[-1, 1], [-1, -1], [1, -1], [1, 1]].map(x => {
+                    let v = m4v4Multiply(m, [...x, 0, 1]);
+                    return v3Scale(v, 1.0 / v[3], v);
+                });
+                console.log(vertices[0]);
+                //proj*modelView*portalRectTransform;
+                // ==> Project and cull (view and winding.)
+                // ==> If projection is inside view
+                //==> push to preRenderSet
+            }
+        }
 
         renderSet.unshift(currentRoom);
     }
 
-
-    for (let room of gameRenderState.roomSet.rooms) {
+    for (let room of renderSet) {
         gl.bindBuffer(gl.ARRAY_BUFFER, gameRenderState.quadBuffer);
         gl.vertexAttribPointer(room.aVertexPosition, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(room.aVertexPosition);
@@ -116,14 +137,10 @@ function render(tMs) {
 
         gl.uniform1i(room.uZero, tMs);
 
-
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
 
-
-
     requestAnimationFrame(render);
-
 }
 
 function resizeViewport() {
@@ -141,25 +158,23 @@ function init() {
     const qualityRatio = 1.0;
     const canvasScale = 1.0;
 
-
     //DELETEME
     //stairs
     const stairsRooms = 10;
     for (let i = 0; i < stairsRooms; i++) {
-        let len = (i >= stairsRooms - 1) ? 1 : 0.5;
+        let len = 0.5;
+        let lenCur = (i >= stairsRooms - 1) ? 1 : 0.5;
         let next = (i >= stairsRooms - 1) ? undefined : (sampleRooms.length + 1);
         sampleRooms.push([
-            0.30 * (i + 1), 5,
-            [1.5, -3],
-            [1.5, -3 - (i + 1) * len, next],
-            [-1.5, -3 - (i + 1) * len],
-            [-1.5, -3, sampleRooms.length - 1]
+            0.30 * (i + 1), 8,
+            [1.5, -3 - i * len],
+            [1.5, -3 - (i + 1) * lenCur, next],
+            [-1.5, -3 - (i + 1) * lenCur],
+            [-1.5, -3 - i * len, sampleRooms.length - 1]
         ]);
     }
 
-
     console.log("js12k2019 - Debug mode [ON]");
-
 
     const canvas = document.createElement("canvas");
     let gl = canvas.getContext("webgl2");

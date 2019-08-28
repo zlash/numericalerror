@@ -20,17 +20,20 @@ function m4Multiply(m4A, m4B, result = m4Identity()) {
     return result;
 }
 
-
-function m4v3Multiply(m4a, v3a, w, result = v3Empty()) {
-    let v = [...v3a, w];
-    for (let x = 0; x < 3; x++) {
+function m4v4Multiply(m4a, v4a, result = v4Empty()) {
+    for (let x = 0; x < result.length; x++) {
         result[x] = 0.0;
         for (let i = 0; i < 4; i++) {
-            result[x] += m4a[i * 4 + x] * v[i];
+            result[x] += m4a[i * 4 + x] * v4a[i];
         }
     }
     return result;
 }
+
+function m4v3Multiply(m4a, v3a, w, result = v3Empty()) {
+    return m4v4Multiply(m4a, [...v3a, w], result);
+}
+
 
 function m4Translation(v3Offset, result = m4Identity()) {
     result[12] = v3Offset[0];
@@ -39,6 +42,12 @@ function m4Translation(v3Offset, result = m4Identity()) {
     return result;
 }
 
+function m4Scale(v3Scale, result = m4Identity()) {
+    result[0] = v3Scale[0];
+    result[5] = v3Scale[1];
+    result[10] = v3Scale[2];
+    return result;
+}
 
 function m4AxisAngleRotation(v3Axis, angle, result = m4Identity()) {
 
