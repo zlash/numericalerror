@@ -79,7 +79,23 @@ function render(tMs) {
 
     let projection = m4PerspectiveFov(55 * Math.PI / 180, gameRenderState.gl.canvas.height, gameRenderState.gl.canvas.width, 0.1, 100);
 
-    for (let room of gameRenderState.roomSet) {
+    let preRenderSet = [];
+    let renderSet = [];
+    //==> Push camera room, move pos to current room floor, if not current room, revert movement (Punga walking collison sim)
+
+    while (preRenderSet.length > 0) {
+        let currentRoom = preRenderSet.pop();
+
+        //==> For each current room wall, if portal
+            // ==> Project and cull
+            // ==> If projection is inside view
+                //==> push to preRenderSet
+
+        renderSet.unshift(currentRoom);
+    }
+
+    
+    for (let room of gameRenderState.roomSet.rooms) {
         gl.bindBuffer(gl.ARRAY_BUFFER, gameRenderState.quadBuffer);
         gl.vertexAttribPointer(room.aVertexPosition, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(room.aVertexPosition);
@@ -119,7 +135,7 @@ function requestCanvasPointerLock() {
 
 function init() {
 
-    const qualityRatio = 0.5;
+    const qualityRatio = 1.0;
     const canvasScale = 1.0;
 
 
@@ -157,7 +173,7 @@ function init() {
 
     gl.clearColor(0.0, 1.0, 0.0, 1.0);
 
-    gameRenderState.roomSet = buildRoomsSdf(gl, sampleRooms);
+    gameRenderState.roomSet = new RoomSet(gl, sampleRooms);
 
     createQuad(gl);
 

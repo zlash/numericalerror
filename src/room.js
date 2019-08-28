@@ -18,67 +18,85 @@ function buildWall(corner, side, len, floor, roomHeight) {
     return `sdfWall(vec3(matInverse(${m4ToStrMat4(m)})*vec4(pos,1.0)), vec2(${numberToStringWithDecimals(len * 0.5)},${numberToStringWithDecimals(roomHeight * 0.5)}))`;
 }
 
-function buildRoomSdf(room, rooms) {
+function buildRoomSdf(roomData, rooms) {
     //For each wall, add an sdf wall with the needed transformation
     let walls = [];
-    let points = [];
-    let metadata = [];
-    let roomHeight = room[1] - room[0];
+    let roomHeight = roomData.ceiling - roomData.floor;
+    const points = roomData.points;
+    const metadata = roomData.metadata;
 
-    for (let i = 2; i < room.length; i++) {
-        points.push([room[i][0], 0, room[i][1]]);
-        metadata.push({ portal: room[i][2] });
-    }
+    for (let i = 0; i < points.length; i++) {
 
-    points.push(points[0]);
+        let curPoint = points[i];
+        let nextPoint = points[(i == points.length - 1) ? 0 : (i+1)];
 
-    for (let i = 0; i < points.length - 1; i++) {
-
-        let side = v3Subtract(points[i], points[i + 1]);
+        let side = v3Subtract(curPoint, nextPoint);
         let len = v3Length(side);
 
         if (metadata[i].portal == undefined) {
-            walls.push(buildWall(points[i + 1], side, len, room[0], roomHeight));
+            walls.push(buildWall(nextPoint, side, len, roomData.floor, roomHeight));
         } else {
             let connectingRoom = rooms[metadata[i].portal];
             //floor wall
-            if (connectingRoom[0] > room[0]) {
-                walls.push(buildWall(points[i + 1], side, len, room[0], connectingRoom[0] - room[0]));
+            if (connectingRoom[0] > roomData.floor) {
+                walls.push(buildWall(nextPoint, side, len, roomData.floor, connectingRoom[0] - roomData.floor));
             }
 
             //ceil wall
-            if (room[1] > connectingRoom[1]) {
-                let ch = room[1] - connectingRoom[1];
-                walls.push(buildWall(points[i + 1], side, len, room[1] - ch, ch));
+            if (roomData.ceiling > connectingRoom[1]) {
+                let ch = roomData.ceiling - connectingRoom[1];
+                walls.push(buildWall(nextPoint, side, len, roomData.ceiling - ch, ch));
             }
         }
 
     }
 
-
-
     return walls.reduce((acc, cv) => { return `min(${acc},${cv})` });
 }
 
-function buildRoomsSdf(gl, rooms) {
-    let roomSet = [];
+class RoomSet {
+    constructor(gl, rooms) {
+        this.rooms = [];
 
-    for (let room of rooms) {
-        let roomData = {};
-        let fs = buildRoomFS(buildRoomSdf(room, rooms));
+        for (let room of rooms) {
+            let roomData = {};
 
-        roomData.shader = createProgram(gl, prependPrecisionAndVersion(roomVS), fs);
+            roomData.floor = room[0]
+            roomData.ceiling = room[1];
+            roomData.points = [];
+            roomData.metadata = [];
 
-        roomData.aVertexPosition = gl.getAttribLocation(roomData.shader, 'aVertexPosition');
-        roomData.uProjectionMatrix = gl.getUniformLocation(roomData.shader, 'uProjectionMatrix');
-        roomData.uModelViewMatrix = gl.getUniformLocation(roomData.shader, 'uModelViewMatrix');
-        roomData.uZero = gl.getUniformLocation(roomData.shader, 'uZero');
+            for (let i = 2; i < room.length; i++) {
+                roomData.points.push([room[i][0], 0, room[i][1]]);
+                roomData.metadata.push({ portal: room[i][2] });
+            }
 
-        roomSet.push(roomData);
+            let fs = buildRoomFS(buildRoomSdf(roomData, rooms));
+
+            roomData.idx = this.rooms.length;
+            roomData.shader = createProgram(gl, prependPrecisionAndVersion(roomVS), fs);
+
+            roomData.aVertexPosition = gl.getAttribLocation(roomData.shader, 'aVertexPosition');
+            roomData.uProjectionMatrix = gl.getUniformLocation(roomData.shader, 'uProjectionMatrix');
+            roomData.uModelViewMatrix = gl.getUniformLocation(roomData.shader, 'uModelViewMatrix');
+            roomData.uZero = gl.getUniformLocation(roomData.shader, 'uZero');
+
+            this.rooms.push(roomData);
+        }
     }
 
-    return roomSet;
+
+    roomFromPonint(point) {
+        for (let room of rooms) {
+
+
+        }
+    }
+
 }
+
+
+
 
 //Using trick from http://iquilezles.org/www/articles/normalsSDF/normalsSDF.htm
 function buildRoomFS(roomSdf) {
