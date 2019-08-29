@@ -89,8 +89,8 @@ function render(tMs) {
     let modelView = m4LookAt(pos, v3Add(pos, viewV), [0, 1, 0]);
     //let modelView = m4LookAt([0,7,0], [0,0,0], [0, 0, -1]);
 
-    let pAngle =  90 * Math.PI / 180;
-    
+    let pAngle = 90 * Math.PI / 180;
+
     let projection = m4Perspective(pAngle, gameRenderState.gl.canvas.width / gameRenderState.gl.canvas.height, 0, 20);
 
     let pmv = m4Multiply(projection, modelView);
@@ -103,15 +103,44 @@ function render(tMs) {
 
         const points = currentRoom.points;
         for (let i = 0; i < points.length; i++) {
-            if (currentRoom.metadata[i].portal) {
+            if (currentRoom.metadata[i].portal != undefined) {
                 let m = m4Multiply(pmv, currentRoom.metadata[i].portalMatrix);
 
                 let vertices = [[-1, 1], [-1, -1], [1, -1], [1, 1]].map(x => {
-                    let v = m4v4Multiply(m, [...x, 0, 1]);
-                    return v3Scale(v, 1.0 / v[3], v);
+                    return m4v4Multiply(m, [...x, 0, 1]);
                 });
 
-                console.log(vertices[0], vertices[1]);
+                // Using determinant to check for polygon winding
+                let d = (vertices[0][0] * vertices[1][1] * vertices[2][3])
+                    + (vertices[1][0] * vertices[2][1] * vertices[0][3])
+                    + (vertices[2][0] * vertices[0][1] * vertices[1][3])
+                    - (vertices[2][0] * vertices[1][1] * vertices[0][3])
+                    - (vertices[1][0] * vertices[0][1] * vertices[2][3])
+                    - (vertices[0][0] * vertices[2][1] * vertices[1][3]);
+
+                if (d <= 0) {
+                    continue;
+                }
+
+                //Clip with view volume
+                let sides = [0, 0, 0];
+                for (let v of vertices) {
+                    for (let i = 0; i < 3; i++) {
+                        if (v[i] < -v[3]) {
+                            sides[i]--;
+                        } else if (v[i] > v[3]) {
+                            sides[i]++;
+                        }
+                    }
+                }
+
+                let vl = vertices.length;
+
+                if (Math.abs(sides[0]) == vl) break;
+                if (Math.abs(sides[1]) == vl) break;
+                if (Math.abs(sides[2]) == vl) break;
+
+                preRenderSet.push(gameRenderState.roomSet.rooms[currentRoom.metadata[i].portal]);
 
                 //proj*modelView*portalRectTransform;
                 // ==> Project and cull (view and winding.)
