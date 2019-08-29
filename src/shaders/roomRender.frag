@@ -17,6 +17,8 @@ float shadow(vec3 ro, vec3 rd, float mint, float tmax)
     return step(0.01, res);
 }
 
+uniform mat4 uProjectionMatrix;
+
 void main()
 {
     const float sensorSize = 3.0;
@@ -24,12 +26,15 @@ void main()
     vec3 p;
     vec2 mt;
     float t = 0.1;
-    mat4 invModelView = matInverse(uModelViewMatrix);
+    mat4 invModelView = inverse(uModelViewMatrix);
 
-    vec3 view = normalize(vViewVector.xyz);
+    vec4 pView = inverse(uProjectionMatrix) * vec4(vUvs.xy * 2.0 - vec2(1), -1.0, 1.0);
+    vec4 pView2 = inverse(uProjectionMatrix) * vec4(vUvs.xy * 2.0 - vec2(1), 1.0, 1.0);
+    vec3 pos = (pView.xyz / pView.w);
+    vec3 view = normalize((pView2.xyz / pView2.w) - (pView.xyz / pView.w));
 
     for (int i = 0; i < 64; i++) {
-        p = view * t;
+        p = pos + view * t;
         p = vec3(invModelView * vec4(p, 1.0));
         mt = room(p);
         float h = mt.x;

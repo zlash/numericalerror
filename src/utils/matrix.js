@@ -95,15 +95,15 @@ function m4LookAt(v3Eye, v3Center, v3Up, result = m4Identity()) {
     return result;
 }
 
-function m4PerspectiveFov(fov, width, height, zNear, zFar, result = m4Identity()) {
-    const h = Math.cos(0.5 * fov) / Math.sin(0.5 * fov);
-    const w = h * height / width;
+function m4Perspective(fovY, aspectRatio, zNear, zFar, result = m4Identity()) {
 
-    result[0] = w;
-    result[5] = h;
+    const tanHalfFovy = Math.tan(fovY / 2);
+
+    result[0] = 1 / (aspectRatio * tanHalfFovy);
+    result[5] = 1 / (tanHalfFovy);
     result[10] = - (zFar + zNear) / (zFar - zNear);
     result[11] = - 1.0;
-    result[14] = - (2.0 * zFar * zNear) / (zFar - zNear);
+    result[14] = - (2 * zFar * zNear) / (zFar - zNear);
     return result;
 }
 

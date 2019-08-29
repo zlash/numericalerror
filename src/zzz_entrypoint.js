@@ -40,6 +40,7 @@ let prevTMs = 0;
 let pos = [0, 1.8, 0];
 let viewV = [0, 0, -1];
 
+
 function render(tMs) {
     let gl = gameRenderState.gl;
     tMs *= 0.001;  // convert to seconds
@@ -88,8 +89,9 @@ function render(tMs) {
     let modelView = m4LookAt(pos, v3Add(pos, viewV), [0, 1, 0]);
     //let modelView = m4LookAt([0,7,0], [0,0,0], [0, 0, -1]);
 
-    let projection = m4PerspectiveFov(55 * Math.PI / 180, gameRenderState.gl.canvas.height, gameRenderState.gl.canvas.width, 0.1, 100);
-
+    let pAngle =  90 * Math.PI / 180;
+    
+    let projection = m4Perspective(pAngle, gameRenderState.gl.canvas.width / gameRenderState.gl.canvas.height, 0, 20);
 
     let pmv = m4Multiply(projection, modelView);
 
@@ -108,7 +110,9 @@ function render(tMs) {
                     let v = m4v4Multiply(m, [...x, 0, 1]);
                     return v3Scale(v, 1.0 / v[3], v);
                 });
-                console.log(vertices[0]);
+
+                console.log(vertices[0], vertices[1]);
+
                 //proj*modelView*portalRectTransform;
                 // ==> Project and cull (view and winding.)
                 // ==> If projection is inside view

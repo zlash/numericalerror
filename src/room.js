@@ -19,7 +19,7 @@ function buildWallMatrix(corner, side, len, floor, roomHeight) {
 
 function buildWall(corner, side, len, floor, roomHeight) {
     let m = buildWallMatrix(corner, side, len, floor, roomHeight);
-    return `sdfWall(vec3(matInverse(${m4ToStrMat4(m)})*vec4(pos,1.0)), vec2(${numberToStringWithDecimals(len * 0.5)},${numberToStringWithDecimals(roomHeight * 0.5)}))`;
+    return `sdfWall(vec3(inverse(${m4ToStrMat4(m)})*vec4(pos,1.0)), vec2(${numberToStringWithDecimals(len * 0.5)},${numberToStringWithDecimals(roomHeight * 0.5)}))`;
 }
 
 function buildRoomSdf(roomData, rooms) {
@@ -42,7 +42,7 @@ function buildRoomSdf(roomData, rooms) {
         } else {
             let connectingRoom = rooms[metadata[i].portal];
             //floor wall
-            /*if (connectingRoom[0] > roomData.floor) {
+            if (connectingRoom[0] > roomData.floor) {
                 walls.push(buildWall(nextPoint, side, len, roomData.floor, connectingRoom[0] - roomData.floor));
             }
 
@@ -50,16 +50,17 @@ function buildRoomSdf(roomData, rooms) {
             if (roomData.ceiling > connectingRoom[1]) {
                 let ch = roomData.ceiling - connectingRoom[1];
                 walls.push(buildWall(nextPoint, side, len, roomData.ceiling - ch, ch));
-            }*/
+            }
 
             //Portal! 
             let portalTop = Math.min(roomData.ceiling, connectingRoom[1]);
             let portalBottom = Math.max(roomData.floor, connectingRoom[0]);
             let portalHeight = portalTop - portalBottom;
+
             let wallM = buildWallMatrix(nextPoint, side, len, portalBottom, portalHeight);
-            console.log(m4ToStrMat4(m4Scale([2, len * 0.5, 1])));
-            metadata[i].portalMatrix = m4Multiply(wallM, m4Scale([len * 0.5, portalHeight * 0.5, 0.5]));
-            walls.push(`sdfWall(vec3(matInverse(${m4ToStrMat4(metadata[i].portalMatrix)})*vec4(pos,1.0)),vec2(1.0,1.0))`);
+
+            metadata[i].portalMatrix = m4Multiply(wallM, m4Scale([len * 0.5, portalHeight * 0.5, 1.0]));
+           
         }
 
     }
@@ -130,12 +131,6 @@ function buildRoomFS(roomSdf) {
     return prependPrecisionAndVersion(`
     ${roomHeaderFS}
     ${roomFunctionsFS}
-    mat4 matInverse(mat4 m)
-    {
-        return mat4(m[0][0], m[1][0], m[2][0], 0.0, m[0][1], m[1][1], m[2][1], 0.0,
-            m[0][2], m[1][2], m[2][2], 0.0, -dot(m[0].xyz, m[3].xyz),
-            -dot(m[1].xyz, m[3].xyz), -dot(m[2].xyz, m[3].xyz), 1.0);
-    }
 
     vec2 room(vec3 pos)
     {
