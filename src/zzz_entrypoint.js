@@ -57,10 +57,10 @@ function render(tMs) {
         viewV = v3Normalize(viewV);
     }
 
-    const mv = dTimeMs;
-    let movement = v3Scale(viewV, dTimeMs);
+    const mv = dTimeMs*2;
+    let movement = v3Scale(viewV, mv);
     let side = v3Cross(viewV, [0, 1, 0]);
-    side = v3Scale(v3Normalize(side), dTimeMs);
+    side = v3Scale(v3Normalize(side), mv);
 
 
     let prePos = [...pos];
@@ -91,15 +91,16 @@ function render(tMs) {
 
     let pAngle = 90 * Math.PI / 180;
 
-    let projection = m4Perspective(pAngle, gameRenderState.gl.canvas.width / gameRenderState.gl.canvas.height, 0, 20);
+    let projection = m4Perspective(pAngle, gameRenderState.gl.canvas.width / gameRenderState.gl.canvas.height, 0.05, 30);
 
     let pmv = m4Multiply(projection, modelView);
 
-    let preRenderSet = [currentRoom];
+    let preRenderSet = [{ room: currentRoom }];
     let renderSet = [];
 
     while (preRenderSet.length > 0) {
-        let currentRoom = preRenderSet.pop();
+        let currentRoomPair = preRenderSet.pop();
+        let currentRoom = currentRoomPair.room;
 
         const points = currentRoom.points;
         for (let i = 0; i < points.length; i++) {
@@ -140,24 +141,24 @@ function render(tMs) {
                 if (Math.abs(sides[1]) == vl) break;
                 if (Math.abs(sides[2]) == vl) break;
 
-                preRenderSet.push(gameRenderState.roomSet.rooms[currentRoom.metadata[i].portal]);
-
-                //proj*modelView*portalRectTransform;
-                // ==> Project and cull (view and winding.)
-                // ==> If projection is inside view
-                //==> push to preRenderSet
+                preRenderSet.push({ room: gameRenderState.roomSet.rooms[currentRoom.metadata[i].portal], clip: m });
             }
         }
 
-        renderSet.unshift(currentRoom);
+        renderSet.unshift(currentRoomPair);
     }
 
-    for (let room of renderSet) {
+    gl.disable(gl.DEPTH_TEST);
+
+    for (let roomPair of renderSet) {
+
+        let room = roomPair.room;
         gl.bindBuffer(gl.ARRAY_BUFFER, gameRenderState.quadBuffer);
         gl.vertexAttribPointer(room.aVertexPosition, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(room.aVertexPosition);
         gl.useProgram(room.shader);
 
+  
         gl.uniformMatrix4fv(
             room.uModelViewMatrix,
             false,
@@ -167,6 +168,12 @@ function render(tMs) {
             room.uProjectionMatrix,
             false,
             projection);
+
+        gl.uniformMatrix4fv(
+            room.uClipModelViewMatrix,
+            false,
+            roomPair.clip ? roomPair.clip : m4Identity());
+
 
         gl.uniform1i(room.uZero, tMs);
 

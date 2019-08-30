@@ -60,11 +60,17 @@ function buildRoomSdf(roomData, rooms) {
             let wallM = buildWallMatrix(nextPoint, side, len, portalBottom, portalHeight);
 
             metadata[i].portalMatrix = m4Multiply(wallM, m4Scale([len * 0.5, portalHeight * 0.5, 1.0]));
-           
+
+
         }
 
     }
 
+    /*
+    walls.push(`sdfPlane(pos-vec3(0.0,${numberToStringWithDecimals(roomData.floor)},0.0),vec3(0.0,1.0,0.0))`);
+    walls.push(`sdfPlane(pos-vec3(0.0,${numberToStringWithDecimals(roomData.ceiling)},0.0),vec3(0.0,-1.0,0.0))`);
+    */
+   
     return walls.reduce((acc, cv) => { return `min(${acc},${cv})` });
 }
 
@@ -93,6 +99,8 @@ class RoomSet {
             roomData.aVertexPosition = gl.getAttribLocation(roomData.shader, 'aVertexPosition');
             roomData.uProjectionMatrix = gl.getUniformLocation(roomData.shader, 'uProjectionMatrix');
             roomData.uModelViewMatrix = gl.getUniformLocation(roomData.shader, 'uModelViewMatrix');
+            roomData.uClipModelViewMatrix = gl.getUniformLocation(roomData.shader, 'uClipModelViewMatrix');
+
             roomData.uZero = gl.getUniformLocation(roomData.shader, 'uZero');
 
             this.rooms.push(roomData);

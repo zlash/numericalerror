@@ -28,6 +28,8 @@ void main()
     float t = 0.1;
     mat4 invModelView = inverse(uModelViewMatrix);
 
+    vec2 vUvs = gl_FragCoord.xy / vec2(800.0, 600.0);
+
     vec4 pView = inverse(uProjectionMatrix) * vec4(vUvs.xy * 2.0 - vec2(1), -1.0, 1.0);
     vec4 pView2 = inverse(uProjectionMatrix) * vec4(vUvs.xy * 2.0 - vec2(1), 1.0, 1.0);
     vec3 pos = (pView.xyz / pView.w);

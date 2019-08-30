@@ -1,5 +1,4 @@
 
-in vec2 vUvs;
 in vec4 vViewVector;
 
 uniform mat4 uModelViewMatrix;
