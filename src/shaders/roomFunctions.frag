@@ -18,6 +18,13 @@ float sdfRoundedBox(vec3 p, vec3 b, float r)
 
 float sdfOpIntersection(float d1, float d2) { return max(d1, d2); }
 
+// Apply after primitive
+float sdfOpExtrusion(vec3 p, float d2d, float h)
+{
+    vec2 w = vec2(d2d, abs(p.z) - h);
+    return min(max(w.x, w.y), 0.0) + length(max(w, 0.0));
+}
+
 // Apply before primitive
 vec3 sdfOpRepeat(vec3 p, vec3 c) { return mod(p, c) - 0.5 * c; }
 
@@ -49,6 +56,6 @@ float sdfWall(vec3 pos, vec2 dim)
     float bricksD = min(sdfBrickRow(pos),
         sdfBrickRow(pos - vec3(brickSize.x, brickSize.y * 2.0, 0.0)));
 
-    return sdfOpIntersection(min(d, bricksD), sdfBox(pos, vec3(dim, brickSize.z*2.5)));
+    return sdfOpIntersection(min(d, bricksD), sdfBox(pos, vec3(dim, brickSize.z * 2.5)));
     //return sdfOpIntersection(d, sdfBox(pos, vec3(dim, brickSize.z*2.5)));
 }
