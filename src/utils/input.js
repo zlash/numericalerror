@@ -29,12 +29,10 @@ function mouseMoveEventHandler(event) {
 }
 
 function pointerLockChange() {
-    if (document.pointerLockElement === gameRenderState.gl.canvas ||
-        document.mozPointerLockElement === gameRenderState.gl.canvas) {
-        console.log("Pointer Lock On");
+    if (document.pointerLockElement === globalRenderState.gl.canvas ||
+        document.mozPointerLockElement === globalRenderState.gl.canvas) {
         document.addEventListener("mousemove", mouseMoveEventHandler, false);
     } else {
-        console.log("Pointer Lock Off");
         document.removeEventListener("mousemove", mouseMoveEventHandler, false);
     }
 }
