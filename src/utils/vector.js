@@ -54,3 +54,7 @@ function v3Cross(v3a, v3b, result = v3Empty()) {
 function v2ToStrVec2(v2) {
     return `vec2(${numberToStringWithDecimals(v2[0])},${numberToStringWithDecimals(v2[1])})`;
 }
+
+function v3xzToStrVec2(v3) {
+    return `vec2(${numberToStringWithDecimals(v3[0])},${numberToStringWithDecimals(v3[2])})`;
+}

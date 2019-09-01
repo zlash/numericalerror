@@ -6,6 +6,9 @@ function loadShader(gl, type, source) {
     if (DEBUG) {
         if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
             alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
+            console.log("FAILED SHADER:");
+            console.log("============================================");
+            console.log(source);
             gl.deleteShader(shader);
             return null;
         }
