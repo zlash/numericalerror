@@ -51,8 +51,7 @@ function requestCanvasPointerLock() {
 }
 
 function init() {
-
-    const qualityRatio = 0.75;
+    const qualityRatio = 0.5;
     const canvasScale = 1.0;
 
     console.log("js12k2019 - Debug mode [ON]");
@@ -61,8 +60,9 @@ function init() {
     let gl = canvas.getContext("webgl2", { antialias: false });
     globalRenderState.gl = gl;
 
-    canvas.width = 800 * canvasScale * qualityRatio;
-    canvas.height = 600 * canvasScale * qualityRatio;
+    let fbScale = canvasScale * qualityRatio;
+    canvas.width = 800 * fbScale;
+    canvas.height = 600 * fbScale;
     resizeViewport();
 
     canvas.style.width = `${canvas.width / qualityRatio}px`;

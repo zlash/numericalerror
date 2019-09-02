@@ -175,7 +175,9 @@ class Ingame {
             gl.uniformMatrix4fv(room.uModelViewMatrix, false, this.viewMatrix);
             gl.uniformMatrix4fv(room.uProjectionMatrix, false, this.projectionMatrix);
             gl.uniformMatrix4fv(room.uClipModelViewMatrix, false, roomPair.clip ? roomPair.clip : m4Identity());
-            gl.uniformMatrix4fv(room.uDynamicTransforms, false, m4Invert(m4Translation(this.player.pos)));
+            gl.uniformMatrix4fv(room.uDynamicTransforms, false, 
+                m4Invert(m4Multiply(m4Translation(this.player.pos), qToM4(this.player.qDir)))
+            );
 
             gl.uniform2iv(room.uScreenSize, globalRenderState.screen);
 

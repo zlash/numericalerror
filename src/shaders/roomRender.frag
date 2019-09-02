@@ -22,7 +22,8 @@ vec3 shade(vec3 pos, vec3 normal, float mat)
     if (mat < 0.5) { // Wall
         return vec3(0.6);
     } else if (mat < 1.5) { // Floor
-        return vec3(0.0, 0.0, 1.0);
+        vec2 q = floor(pos.xz);
+        return vec3(mod(q.x + q.y, 2.));
     }
 
     return vec3(1.0, 0.0, 0.0);
