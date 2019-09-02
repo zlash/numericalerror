@@ -13,10 +13,10 @@ let sampleRooms = [[
 ]];
 
 
-
 class Player {
     constructor() {
         this.pos = [0, 1, 0];
+        this.prevPos = [0, 1, 0];
         this.qDir = qIdentity();
         this.dir = [0, 0, -1];
         this.up = [0, 1, 0];
@@ -39,14 +39,22 @@ class Player {
 
 
         const mv = dTimeSeconds * 2;
-        let movement = v3Scale(this.dir, mv);
+
         let side = v3Cross(this.dir, this.up);
         side = v3Scale(v3Normalize(side), mv);
-
+        let acc = 0;
+        
         if (isKeyDown(KeyCodeUp)) {
-            this.pos = v3Add(this.pos, movement, this.pos);
+            acc += dTimeSeconds;
         }
-        if (isKeyDown(KeyCodeDown)) {
+
+        let dirAcc = v3Scale(this.dir, acc * dTimeSeconds);
+
+        let prevPos = this.pos;
+        this.pos = v3Add(v3Subtract(v3Scale(this.pos, 2), this.prevPos), dirAcc);
+        this.prevPos = prevPos;
+
+        /*if (isKeyDown(KeyCodeDown)) {
             this.pos = v3Subtract(this.pos, movement, this.pos);
         }
         if (isKeyDown(KeyCodeLeft)) {
@@ -54,7 +62,7 @@ class Player {
         }
         if (isKeyDown(KeyCodeRight)) {
             this.pos = v3Add(this.pos, side, this.pos);
-        }
+        }*/
 
     }
 }
@@ -175,7 +183,7 @@ class Ingame {
             gl.uniformMatrix4fv(room.uModelViewMatrix, false, this.viewMatrix);
             gl.uniformMatrix4fv(room.uProjectionMatrix, false, this.projectionMatrix);
             gl.uniformMatrix4fv(room.uClipModelViewMatrix, false, roomPair.clip ? roomPair.clip : m4Identity());
-            gl.uniformMatrix4fv(room.uDynamicTransforms, false, 
+            gl.uniformMatrix4fv(room.uDynamicTransforms, false,
                 m4Invert(m4Multiply(m4Translation(this.player.pos), qToM4(this.player.qDir)))
             );
 
