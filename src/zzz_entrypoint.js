@@ -74,7 +74,7 @@ function init() {
         document.body.appendChild(globalRenderState.fpsCounterElement);
     }
 
-    gl.clearColor(0.6, 0.6, 0.6, 1.0);
+    gl.clearColor(0.0, 1.0, 0.0, 1.0);
     createQuad(gl);
 
     ingame = new Ingame();

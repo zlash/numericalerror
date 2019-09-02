@@ -32,7 +32,7 @@ function v3Dot(v3a, v3b) {
 }
 
 function v3Length(v3a) {
-    return Math.sqrt(v3Dot(v3a, v3a));
+    return Math.hypot(...v3a);
 }
 
 function v3Normalize(v3a, result = v3Empty()) {

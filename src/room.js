@@ -19,7 +19,7 @@ function buildWallMatrix(corner, side, len, floor, roomHeight) {
 
 function buildWall(corner, side, len, floor, roomHeight) {
     let m = buildWallMatrix(corner, side, len, floor, roomHeight);
-    return `sdfWall(vec3(inverse(${m4ToStrMat4(m)})*vec4(pos,1.0)), ${v2ToStrVec2([len * 0.5, roomHeight * 0.5])} )`;
+    return `sdfWall(vec3(${m4ToStrMat4(m4Invert(m))}*vec4(pos,1.0)), ${v2ToStrVec2([len * 0.5, roomHeight * 0.5])} )`;
 }
 
 function buildRoomSdf(roomData, rooms) {
@@ -130,6 +130,7 @@ class RoomSet {
             roomData.center = roomData.points.reduce((acc, cur) => v3Add(acc, v3Scale(cur, 1 / roomData.points.length)), [0, 0, 0]);
 
             let fs = buildRoomFS(buildRoomSdf(roomData, rooms));
+            console.log(fs);
 
             roomData.idx = this.rooms.length;
             roomData.shader = createProgram(gl, prependPrecisionAndVersion(roomVS), fs);

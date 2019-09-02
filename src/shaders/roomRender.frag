@@ -35,7 +35,7 @@ void main()
     vec3 pos = (pView.xyz / pView.w);
     vec3 view = normalize((pView2.xyz / pView2.w) - pos);
 
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < 64; i++) {
         p = pos + view * t;
         p = vec3(invModelView * vec4(p, 1.0));
         mt = room(p);
