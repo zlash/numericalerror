@@ -16,17 +16,22 @@ let sampleRooms = [[
 class Player {
     constructor() {
         this.pos = [0, 0, 0];
-        this.dir = [0, 0, 1];
+        this.qDir = qIdentity();
     }
 
     update(dTimeSeconds) {
 
         if (mouseDeltaX != 0) {
-            let rot = m4AxisAngleRotation([0, 1, 0], dTimeSeconds * -mouseDeltaX);
-            this.dir = m4v3Multiply(rot, this.dir, 0.0);
-            this.dir = v3Normalize(this.dir);
+            let q = qMultiply(this.qDir, qFromAxisAngle([0, 1, 0], dTimeSeconds * -mouseDeltaX));
+            qNormalize(q, this.qDir);
         }
 
+        if (mouseDeltaY != 0) {
+            let q = qMultiply(this.qDir, qFromAxisAngle([1, 0, 0], dTimeSeconds * mouseDeltaY));
+            qNormalize(q, this.qDir);
+        }
+
+        /*
         const mv = dTimeSeconds * 2;
         let movement = v3Scale(this.dir, mv);
         let side = v3Cross(this.dir, [0, 1, 0]);
@@ -43,7 +48,7 @@ class Player {
         }
         if (isKeyDown(KeyCodeRight)) {
             this.pos = v3Add(this.pos, side, this.pos);
-        }
+        }*/
 
     }
 }
@@ -82,7 +87,10 @@ class Ingame {
 
         this.player.update(dTimeSeconds);
 
-        this.viewMatrix = m4LookAt(this.player.pos, v3Add(this.player.pos, this.player.dir), [0, 1, 0]);
+        let pDir = qApplyToV3(this.player.qDir, [0, 0, -1]);
+        let pUp = qApplyToV3(this.player.qDir, [0, 1, 0]);
+
+        this.viewMatrix = m4LookAt(v3Subtract(this.player.pos, pDir), this.player.pos, pUp);
 
         let pAngle = 90 * Math.PI / 180;
         this.projectionMatrix = m4Perspective(pAngle, globalRenderState.screen[0] / globalRenderState.screen[1], 0.05, 30);
@@ -166,7 +174,7 @@ class Ingame {
             gl.uniformMatrix4fv(room.uModelViewMatrix, false, this.viewMatrix);
             gl.uniformMatrix4fv(room.uProjectionMatrix, false, this.projectionMatrix);
             gl.uniformMatrix4fv(room.uClipModelViewMatrix, false, roomPair.clip ? roomPair.clip : m4Identity());
-            gl.uniformMatrix4fv(room.uDynamicTransforms, false, m4Invert(m4Translation(v3Add(this.player.pos, this.player.dir))));
+            gl.uniformMatrix4fv(room.uDynamicTransforms, false, m4Invert(m4Translation(this.player.pos)));
 
             gl.uniform2iv(room.uScreenSize, globalRenderState.screen);
 
