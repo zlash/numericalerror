@@ -154,7 +154,7 @@ class Ingame {
         }
 
 
-        
+
         for (let roomPair of renderSet) {
 
             let room = roomPair.room;
@@ -163,28 +163,16 @@ class Ingame {
             gl.enableVertexAttribArray(room.aVertexPosition);
             gl.useProgram(room.shader);
 
-
-            gl.uniformMatrix4fv(
-                room.uModelViewMatrix,
-                false,
-                this.viewMatrix);
-
-            gl.uniformMatrix4fv(
-                room.uProjectionMatrix,
-                false,
-                this.projectionMatrix);
-
-            gl.uniformMatrix4fv(
-                room.uClipModelViewMatrix,
-                false,
-                roomPair.clip ? roomPair.clip : m4Identity());
-
+            gl.uniformMatrix4fv(room.uModelViewMatrix, false, this.viewMatrix);
+            gl.uniformMatrix4fv(room.uProjectionMatrix, false, this.projectionMatrix);
+            gl.uniformMatrix4fv(room.uClipModelViewMatrix, false, roomPair.clip ? roomPair.clip : m4Identity());
+            gl.uniformMatrix4fv(room.uDynamicTransforms, false, m4Invert(m4Translation(v3Add(this.player.pos, this.player.dir))));
 
             gl.uniform2iv(room.uScreenSize, globalRenderState.screen);
 
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         }
-        
+
     }
 
 

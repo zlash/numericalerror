@@ -68,5 +68,5 @@ float sdfPlayerShip(vec3 pos)
 
 float dynamicStuff(vec3 pos)
 {
-    return sdfPlayerShip(pos);
+    return sdfPlayerShip(vec3(uDynamicTransforms[0] * vec4(pos, 1.0)));
 }

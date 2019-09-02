@@ -139,7 +139,7 @@ class RoomSet {
             roomData.uProjectionMatrix = gl.getUniformLocation(roomData.shader, 'uProjectionMatrix');
             roomData.uModelViewMatrix = gl.getUniformLocation(roomData.shader, 'uModelViewMatrix');
             roomData.uClipModelViewMatrix = gl.getUniformLocation(roomData.shader, 'uClipModelViewMatrix');
-
+            roomData.uDynamicTransforms = gl.getUniformLocation(roomData.shader, 'uDynamicTransforms');
             roomData.uScreenSize = gl.getUniformLocation(roomData.shader, 'uScreenSize');
 
             this.rooms.push(roomData);
