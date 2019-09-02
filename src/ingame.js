@@ -70,6 +70,8 @@ class Ingame {
         }
 
         this.roomSet = new RoomSet(gl, sampleRooms);
+
+
     }
 
     update(dTimeSeconds) {
@@ -83,14 +85,16 @@ class Ingame {
         this.viewMatrix = m4LookAt(this.player.pos, v3Add(this.player.pos, this.player.dir), [0, 1, 0]);
 
         let pAngle = 90 * Math.PI / 180;
-        this.projectionMatrix = m4Perspective(pAngle, gl.canvas.width / gl.canvas.height, 0.05, 30);
+        this.projectionMatrix = m4Perspective(pAngle, globalRenderState.screen[0] / globalRenderState.screen[1], 0.05, 30);
 
         this.pmv = m4Multiply(this.projectionMatrix, this.viewMatrix);
 
     }
 
     render() {
+
         let gl = globalRenderState.gl;
+
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.disable(gl.DEPTH_TEST);
 
@@ -150,7 +154,7 @@ class Ingame {
         }
 
 
-
+        
         for (let roomPair of renderSet) {
 
             let room = roomPair.room;
@@ -176,11 +180,11 @@ class Ingame {
                 roomPair.clip ? roomPair.clip : m4Identity());
 
 
-            gl.uniform1i(room.uZero, 0);
+            gl.uniform2iv(room.uScreenSize, globalRenderState.screen);
 
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         }
-
+        
     }
 
 

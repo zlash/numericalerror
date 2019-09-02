@@ -28,14 +28,14 @@ void main()
     float t = 0.1;
     mat4 invModelView = inverse(uModelViewMatrix);
 
-    vec2 vUvs = gl_FragCoord.xy / vec2(800.0, 600.0);
+    vec2 vUvs = gl_FragCoord.xy / vec2(uScreenSize);
 
     vec4 pView = inverse(uProjectionMatrix) * vec4(vUvs.xy * 2.0 - vec2(1), -1.0, 1.0);
     vec4 pView2 = inverse(uProjectionMatrix) * vec4(vUvs.xy * 2.0 - vec2(1), 1.0, 1.0);
     vec3 pos = (pView.xyz / pView.w);
     vec3 view = normalize((pView2.xyz / pView2.w) - pos);
 
-    for (int i = 0; i < 64; i++) {
+    for (int i = 0; i < 32; i++) {
         p = pos + view * t;
         p = vec3(invModelView * vec4(p, 1.0));
         mt = room(p);

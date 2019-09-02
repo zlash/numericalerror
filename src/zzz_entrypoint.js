@@ -27,6 +27,10 @@ function render(tSeconds) {
     const dTimeSeconds = tSeconds - prevTSeconds;
     prevTSeconds = tSeconds;
 
+    if (DEBUG) {
+        globalRenderState.fpsCounterElement.textContent = `Frame time: ${dTimeSeconds * 1000} ms`;
+    }
+
     updateMouseDeltas();
 
     ingame.update(dTimeSeconds);
@@ -36,6 +40,7 @@ function render(tSeconds) {
 }
 
 function resizeViewport() {
+    globalRenderState.screen = [globalRenderState.gl.canvas.width, globalRenderState.gl.canvas.height];
     globalRenderState.gl.viewport(0, 0, globalRenderState.gl.canvas.width, globalRenderState.gl.canvas.height);
 }
 
@@ -47,13 +52,13 @@ function requestCanvasPointerLock() {
 
 function init() {
 
-    const qualityRatio = 1.0;
+    const qualityRatio = 0.75;
     const canvasScale = 1.0;
 
     console.log("js12k2019 - Debug mode [ON]");
 
     const canvas = document.createElement("canvas");
-    let gl = canvas.getContext("webgl2");
+    let gl = canvas.getContext("webgl2", { antialias: false });
     globalRenderState.gl = gl;
 
     canvas.width = 800 * canvasScale * qualityRatio;
@@ -64,7 +69,12 @@ function init() {
 
     document.body.appendChild(canvas);
 
-    gl.clearColor(0.0, 1.0, 0.0, 1.0);
+    if (DEBUG) {
+        globalRenderState.fpsCounterElement = document.createElement("div");
+        document.body.appendChild(globalRenderState.fpsCounterElement);
+    }
+
+    gl.clearColor(0.6, 0.6, 0.6, 1.0);
     createQuad(gl);
 
     ingame = new Ingame();

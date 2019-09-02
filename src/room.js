@@ -105,6 +105,7 @@ float sdfRoomCeil(vec3 p) {
 
     walls.push(`sdfRoomFloor(pos)`);
     walls.push(`sdfRoomCeil(pos)`);
+    walls.push(`dynamicStuff(pos)`);
 
     return { sdf: walls.reduce((acc, cv) => { return `min(${acc},${cv})` }), auxCode: auxCode };
 }
@@ -138,7 +139,7 @@ class RoomSet {
             roomData.uModelViewMatrix = gl.getUniformLocation(roomData.shader, 'uModelViewMatrix');
             roomData.uClipModelViewMatrix = gl.getUniformLocation(roomData.shader, 'uClipModelViewMatrix');
 
-            roomData.uZero = gl.getUniformLocation(roomData.shader, 'uZero');
+            roomData.uScreenSize = gl.getUniformLocation(roomData.shader, 'uScreenSize');
 
             this.rooms.push(roomData);
         }
@@ -184,7 +185,7 @@ function buildRoomFS(roomSdf) {
         return vec2(d, -1.0);
     }
 
-    #define ZERO min(uZero,0)
+    #define ZERO min(uScreenSize.x,0)
 
     vec3 calcNormal( in vec3 pos )
     {
