@@ -13,10 +13,13 @@ let sampleRooms = [[
 ]];
 
 
+
 class Player {
     constructor() {
-        this.pos = [0, 0, 0];
+        this.pos = [0, 1, 0];
         this.qDir = qIdentity();
+        this.dir = [0, 0, -1];
+        this.up = [0, 1, 0];
     }
 
     update(dTimeSeconds) {
@@ -31,10 +34,13 @@ class Player {
             qNormalize(q, this.qDir);
         }
 
-        /*
+        this.dir = v3Normalize(qApplyToV3(this.qDir, [0, 0, -1]));
+        this.up = v3Normalize(qApplyToV3(this.qDir, [0, 1, 0]));
+
+
         const mv = dTimeSeconds * 2;
         let movement = v3Scale(this.dir, mv);
-        let side = v3Cross(this.dir, [0, 1, 0]);
+        let side = v3Cross(this.dir, this.up);
         side = v3Scale(v3Normalize(side), mv);
 
         if (isKeyDown(KeyCodeUp)) {
@@ -48,7 +54,7 @@ class Player {
         }
         if (isKeyDown(KeyCodeRight)) {
             this.pos = v3Add(this.pos, side, this.pos);
-        }*/
+        }
 
     }
 }
@@ -83,14 +89,9 @@ class Ingame {
         let gl = globalRenderState.gl;
         this.currentRoom = this.roomSet.roomFromPoint(this.player.pos);
 
-        this.player.pos[1] = this.currentRoom.floor + 1.8;
-
         this.player.update(dTimeSeconds);
 
-        let pDir = qApplyToV3(this.player.qDir, [0, 0, -1]);
-        let pUp = qApplyToV3(this.player.qDir, [0, 1, 0]);
-
-        this.viewMatrix = m4LookAt(v3Subtract(this.player.pos, pDir), this.player.pos, pUp);
+        this.viewMatrix = m4LookAt(v3Subtract(this.player.pos, this.player.dir), this.player.pos, this.player.up);
 
         let pAngle = 90 * Math.PI / 180;
         this.projectionMatrix = m4Perspective(pAngle, globalRenderState.screen[0] / globalRenderState.screen[1], 0.05, 30);
