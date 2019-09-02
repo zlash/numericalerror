@@ -1,3 +1,4 @@
 function numberToStringWithDecimals(n) {
-    return `${n}${n===Math.trunc(n)?".0":""}`;
+    n = Number(n);
+    return `${n}${n === Math.trunc(n) ? ".0" : ""}`;
 }

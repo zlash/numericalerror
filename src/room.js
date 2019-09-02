@@ -23,8 +23,10 @@ function buildWall(corner, side, len, floor, roomHeight) {
 }
 
 function buildRoomSdf(roomData, rooms) {
-    //For each wall, add an sdf wall with the needed transformation
-    let walls = [];
+    //Collect sdfs in materials
+    let sdfs = {};
+    let addSdf = (sdf, material) => { sdfs[material] = sdfs[material] || []; sdfs[material].push(sdf); };
+
     let roomHeight = roomData.ceiling - roomData.floor;
     const points = roomData.points;
     const metadata = roomData.metadata;
@@ -38,18 +40,18 @@ function buildRoomSdf(roomData, rooms) {
         let len = v3Length(side);
 
         if (metadata[i].portal == undefined) {
-            walls.push(buildWall(nextPoint, side, len, roomData.floor, roomHeight));
+            addSdf(buildWall(nextPoint, side, len, roomData.floor, roomHeight), 0);
         } else {
             let connectingRoom = rooms[metadata[i].portal];
             //floor wall
             if (connectingRoom[0] > roomData.floor) {
-                walls.push(buildWall(nextPoint, side, len, roomData.floor, connectingRoom[0] - roomData.floor));
+                addSdf(buildWall(nextPoint, side, len, roomData.floor, connectingRoom[0] - roomData.floor), 0);
             }
 
             //ceil wall
             if (roomData.ceiling > connectingRoom[1]) {
                 let ch = roomData.ceiling - connectingRoom[1];
-                walls.push(buildWall(nextPoint, side, len, roomData.ceiling - ch, ch));
+                addSdf(buildWall(nextPoint, side, len, roomData.ceiling - ch, ch), 0);
             }
 
             //Portal! 
@@ -94,20 +96,25 @@ return sdfOpExtrusion(p,s*sqrt(d2d),${floorHeight});
 }
 
 float sdfRoomFloor(vec3 p) {
-    return sdfRoomShape(vec3(inverse(${m4ToStrMat4(m4Translation([roomData.center[0], roomData.floor - floorHeight*0.5, roomData.center[2]]))}*${m4ToStrMat4(m4AxisAngleRotation([1, 0, 0], Math.PI * 0.5))})*vec4(p,1.0)));
+    return sdfRoomShape(vec3(inverse(${m4ToStrMat4(m4Translation([roomData.center[0], roomData.floor - floorHeight * 0.5, roomData.center[2]]))}*${m4ToStrMat4(m4AxisAngleRotation([1, 0, 0], Math.PI * 0.5))})*vec4(p,1.0)));
 }
 
 float sdfRoomCeil(vec3 p) {
-    return sdfRoomShape(vec3(inverse(${m4ToStrMat4(m4Translation([roomData.center[0], roomData.ceiling + floorHeight*0.5, roomData.center[2]]))}*${m4ToStrMat4(m4AxisAngleRotation([1, 0, 0], Math.PI * 0.5))})*vec4(p,1.0)));
+    return sdfRoomShape(vec3(inverse(${m4ToStrMat4(m4Translation([roomData.center[0], roomData.ceiling + floorHeight * 0.5, roomData.center[2]]))}*${m4ToStrMat4(m4AxisAngleRotation([1, 0, 0], Math.PI * 0.5))})*vec4(p,1.0)));
 }
 `;
 
+    addSdf(`sdfRoomFloor(pos)`, 1);
+    addSdf(`sdfRoomCeil(pos)`, 0);
+    addSdf(`dynamicStuff(pos)`, 2);
 
-    walls.push(`sdfRoomFloor(pos)`);
-    walls.push(`sdfRoomCeil(pos)`);
-    walls.push(`dynamicStuff(pos)`);
+    let finalSdf = "";
 
-    return { sdf: walls.reduce((acc, cv) => { return `min(${acc},${cv})` }), auxCode: auxCode };
+    for (let k of Object.keys(sdfs).sort((a, b) => a - b)) {
+        finalSdf += `{float sdfD = ${sdfs[k].reduce((acc, cv) => { return `min(${acc},${cv})` })};if(sdfD<d) {d=sdfD;mat=${numberToStringWithDecimals(k)};} }`;
+    }
+
+    return { sdf: finalSdf, auxCode: auxCode };
 }
 
 class RoomSet {
@@ -181,8 +188,10 @@ function buildRoomFS(roomSdf) {
 
     vec2 room(vec3 pos)
     {
-        float d = ${roomSdf.sdf};
-        return vec2(d, -1.0);
+        float d = 3.402823466e+38;
+        float mat = -1.0;
+        ${roomSdf.sdf};
+        return vec2(d, mat);
     }
 
     #define ZERO min(uScreenSize.x,0)

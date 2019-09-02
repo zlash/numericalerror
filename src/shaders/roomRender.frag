@@ -17,6 +17,17 @@ float shadow(vec3 ro, vec3 rd, float mint, float tmax)
     return step(0.01, res);
 }
 
+vec3 shade(vec3 pos, vec3 normal, float mat)
+{
+    if (mat < 0.5) { // Wall
+        return vec3(0.6);
+    } else if (mat < 1.5) { // Floor
+        return vec3(0.0, 0.0, 1.0);
+    }
+
+    return vec3(1.0, 0.0, 0.0);
+}
+
 uniform mat4 uProjectionMatrix;
 
 void main()
@@ -47,12 +58,9 @@ void main()
 
     if (t < 20.0) {
         vec3 light = normalize(vec3(1.0, 1.0, 1.0));
-        if (mt.y > 0.0) {
-            col = vec3(1.0, 0.0, 0.0);
-        } else {
-            col = vec3(0.6);
-        }
+
         vec3 n = calcNormal(p);
+        col = shade(p, n, mt.y);
 
         float att = 1.0;
         att *= max(0.0, dot(light, n));
