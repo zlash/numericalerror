@@ -43,9 +43,12 @@ class Player {
         let side = v3Cross(this.dir, this.up);
         side = v3Scale(v3Normalize(side), mv);
         let acc = 0;
-        
+
         if (isKeyDown(KeyCodeUp)) {
             acc += dTimeSeconds;
+        }
+        if (isKeyDown(KeyCodeDown)) {
+            acc -= dTimeSeconds;
         }
 
         let dirAcc = v3Scale(this.dir, acc * dTimeSeconds);
@@ -54,9 +57,9 @@ class Player {
         this.pos = v3Add(v3Subtract(v3Scale(this.pos, 2), this.prevPos), dirAcc);
         this.prevPos = prevPos;
 
-        /*if (isKeyDown(KeyCodeDown)) {
-            this.pos = v3Subtract(this.pos, movement, this.pos);
-        }
+
+
+        /*
         if (isKeyDown(KeyCodeLeft)) {
             this.pos = v3Subtract(this.pos, side, this.pos);
         }
@@ -89,11 +92,12 @@ class Ingame {
         }
 
         this.roomSet = new RoomSet(gl, sampleRooms);
-
+        this.timeSeconds = 0.0;
 
     }
 
     update(dTimeSeconds) {
+        this.timeSeconds += dTimeSeconds;
         let gl = globalRenderState.gl;
         this.currentRoom = this.roomSet.roomFromPoint(this.player.pos);
 
@@ -186,6 +190,8 @@ class Ingame {
             gl.uniformMatrix4fv(room.uDynamicTransforms, false,
                 m4Invert(m4Multiply(m4Translation(this.player.pos), qToM4(this.player.qDir)))
             );
+
+            gl.uniform1f(room.uTimeSeconds, this.timeSeconds);
 
             gl.uniform2iv(room.uScreenSize, globalRenderState.screen);
 

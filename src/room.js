@@ -147,6 +147,7 @@ class RoomSet {
             roomData.uClipModelViewMatrix = gl.getUniformLocation(roomData.shader, 'uClipModelViewMatrix');
             roomData.uDynamicTransforms = gl.getUniformLocation(roomData.shader, 'uDynamicTransforms');
             roomData.uScreenSize = gl.getUniformLocation(roomData.shader, 'uScreenSize');
+            roomData.uTimeSeconds = gl.getUniformLocation(roomData.shader, 'uTimeSeconds');
 
             this.rooms.push(roomData);
         }
