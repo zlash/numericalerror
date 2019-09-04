@@ -36,6 +36,27 @@ function createProgram(gl, vsSource, fsSource) {
     return shaderProgram;
 }
 
+function createFBOWithTextureAttachment(gl, width, height, internalFormat, baseFormat, dataFormat) {
+    let fbo = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+    let tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, width, height, 0, baseFormat, dataFormat, undefined);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+    if (DEBUG) {
+        let completeness = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+        if (completeness != gl.FRAMEBUFFER_COMPLETE) {
+            console.log("FBO status check FAILED!: ", completeness.toString(16));
+        }
+    }
+    return { fbo: fbo, tex: tex };
+}
+
+function bindFBOAndSetViewport(gl, fbo, size) {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+    globalRenderState.gl.viewport(0, 0, size[0], size[1]);
+}
+
 function prependPrecisionAndVersion(src) {
     return `#version 300 es
 precision highp float;

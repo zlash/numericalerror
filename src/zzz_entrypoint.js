@@ -41,13 +41,19 @@ function render(tSeconds) {
 
 function resizeViewport() {
     globalRenderState.screen = [globalRenderState.gl.canvas.width, globalRenderState.gl.canvas.height];
-    globalRenderState.gl.viewport(0, 0, globalRenderState.gl.canvas.width, globalRenderState.gl.canvas.height);
 }
 
 function requestCanvasPointerLock() {
     let canvas = globalRenderState.gl.canvas;
     canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
     canvas.requestPointerLock();
+}
+
+function getExtension(gl, extension) {
+    const ext = gl.getExtension("EXT_color_buffer_float");
+    if (!ext) {
+        throw new Error(`Needs ${extension}`);
+    }
 }
 
 function init() {
@@ -59,6 +65,8 @@ function init() {
     const canvas = document.createElement("canvas");
     let gl = canvas.getContext("webgl2", { antialias: false });
     globalRenderState.gl = gl;
+
+    getExtension(gl, "EXT_color_buffer_float");
 
     let fbScale = canvasScale * qualityRatio;
     canvas.width = 800 * fbScale;

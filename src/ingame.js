@@ -94,11 +94,25 @@ class Ingame {
         this.roomSet = new RoomSet(gl, sampleRooms);
         this.timeSeconds = 0.0;
 
+        this.collisionsShader = createProgram(gl, prependPrecisionAndVersion(screenQuadVS), prependPrecisionAndVersion(collisionsFS));
+        this.collisionsFBO = createFBOWithTextureAttachment(gl, 1, 1, gl.RGBA32F, gl.RGBA, gl.FLOAT);
+        this.collisionsShaderVariables = {
+            aVertexPosition: gl.getAttribLocation(this.collisionsShader, 'aVertexPosition')
+        };
+        this.collisionsReadDst = new Float32Array(4);
+
     }
 
     update(dTimeSeconds) {
         this.timeSeconds += dTimeSeconds;
         let gl = globalRenderState.gl;
+
+        //Fetch collision results
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.collisionsFBO.fbo);
+        gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.FLOAT, this.collisionsReadDst);
+        console.log(this.collisionsReadDst);
+
+
         this.currentRoom = this.roomSet.roomFromPoint(this.player.pos);
 
         this.player.update(dTimeSeconds);
@@ -115,6 +129,16 @@ class Ingame {
     render() {
 
         let gl = globalRenderState.gl;
+
+        bindFBOAndSetViewport(gl, this.collisionsFBO.fbo, [1, 1]);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, globalRenderState.quadBuffer);
+        gl.vertexAttribPointer(this.collisionsShaderVariables.aVertexPosition, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(this.collisionsShaderVariables.aVertexPosition);
+        gl.useProgram(this.collisionsShader);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        bindFBOAndSetViewport(gl, undefined, globalRenderState.screen);
 
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.disable(gl.DEPTH_TEST);
