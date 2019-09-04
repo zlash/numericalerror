@@ -110,8 +110,6 @@ class Ingame {
         //Fetch collision results
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.collisionsFBO.fbo);
         gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.FLOAT, this.collisionsReadDst);
-        console.log(this.collisionsReadDst);
-
 
         this.currentRoom = this.roomSet.roomFromPoint(this.player.pos);
 

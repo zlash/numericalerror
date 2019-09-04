@@ -22,7 +22,10 @@ function buildWall(corner, side, len, floor, roomHeight) {
     return `sdfWall(vec3(${m4ToStrMat4(m4Invert(m))}*vec4(pos,1.0)), ${v2ToStrVec2([len * 0.5, roomHeight * 0.5])} )`;
 }
 
-function buildRoomSdf(roomData, rooms) {
+function buildRoomSdfBlocks(roomData, rooms) {
+
+    //I must return room segregated by materials 
+
     //Collect sdfs in materials
     let sdfs = {};
     let addSdf = (sdf, material) => { sdfs[material] = sdfs[material] || []; sdfs[material].push(sdf); };
@@ -62,11 +65,13 @@ function buildRoomSdf(roomData, rooms) {
             let wallM = buildWallMatrix(nextPoint, side, len, portalBottom, portalHeight);
 
             metadata[i].portalMatrix = m4Multiply(wallM, m4Scale([len * 0.5, portalHeight * 0.5, 1.0]));
-
-
         }
 
     }
+
+    addSdf(`sdfRoomFloor(pos)`, 1);
+    addSdf(`sdfRoomCeil(pos)`, 0);
+    addSdf(`dynamicStuff(pos)`, 2);
 
     const floorHeight = 0.01;
     let centerPoint = (p) => [p[0] - roomData.center[0], 0, p[2] - roomData.center[2]];
@@ -104,17 +109,15 @@ float sdfRoomCeil(vec3 p) {
 }
 `;
 
-    addSdf(`sdfRoomFloor(pos)`, 1);
-    addSdf(`sdfRoomCeil(pos)`, 0);
-    addSdf(`dynamicStuff(pos)`, 2);
+    return { sdf: objectMap(sdfs, x => x.reduce((acc, cv) => { return `min(${acc},${cv})` })), auxCode: auxCode };
+}
 
-    let finalSdf = "";
 
-    for (let k of Object.keys(sdfs).sort((a, b) => a - b)) {
-        finalSdf += `{float sdfD = ${sdfs[k].reduce((acc, cv) => { return `min(${acc},${cv})` })};if(sdfD<d) {d=sdfD;mat=${numberToStringWithDecimals(k)};} }`;
-    }
 
-    return { sdf: finalSdf, auxCode: auxCode };
+function buildRoomSdf(blocks) {
+    let sdfCode = objectReduce(blocks.sdf, (acc, curValue, curKey) => acc + `{float sdfD=${curValue};if(sdfD<d){d=sdfD;mat=${numberToStringWithDecimals(curKey)};}}`, "");
+
+    return { sdf: sdfCode, auxCode: blocks.auxCode };
 }
 
 class RoomSet {
@@ -136,7 +139,11 @@ class RoomSet {
 
             roomData.center = roomData.points.reduce((acc, cur) => v3Add(acc, v3Scale(cur, 1 / roomData.points.length)), [0, 0, 0]);
 
-            let fs = buildRoomFS(buildRoomSdf(roomData, rooms));
+
+            let blocks = buildRoomSdfBlocks(roomData, rooms);
+
+            let roomSdf = buildRoomSdf(blocks);
+            let fs = buildRoomFS(roomSdf);
 
             roomData.idx = this.rooms.length;
             roomData.shader = createProgram(gl, prependPrecisionAndVersion(roomVS), fs);
