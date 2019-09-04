@@ -97,7 +97,9 @@ class Ingame {
         this.collisionsShader = createProgram(gl, prependPrecisionAndVersion(screenQuadVS), this.roomSet.generateCollisionsShader());
         this.collisionsFBO = createFBOWithTextureAttachment(gl, 1, 1, gl.RGBA32F, gl.RGBA, gl.FLOAT);
         this.collisionsShaderVariables = {
-            aVertexPosition: gl.getAttribLocation(this.collisionsShader, 'aVertexPosition')
+            aVertexPosition: gl.getAttribLocation(this.collisionsShader, "aVertexPosition"),
+            uScreenSize: getUniformLocation(gl, this.collisionsShader, "uScreenSize"),
+            uPlayerPos: getUniformLocation(gl, this.collisionsShader, "uPlayerPos")
         };
         this.collisionsReadDst = new Float32Array(4);
 
@@ -110,7 +112,14 @@ class Ingame {
         //Fetch collision results
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.collisionsFBO.fbo);
         gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.FLOAT, this.collisionsReadDst);
-     
+
+        let normal = v3Normalize(this.collisionsReadDst);
+        let dist = this.collisionsReadDst[3];
+
+        if (dist < 0) {
+            this.player.pos = [0, 1, 0];
+            this.player.prevPos = [0, 1, 0];
+        }
 
         this.currentRoom = this.roomSet.roomFromPoint(this.player.pos);
 
@@ -135,6 +144,8 @@ class Ingame {
         gl.vertexAttribPointer(this.collisionsShaderVariables.aVertexPosition, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(this.collisionsShaderVariables.aVertexPosition);
         gl.useProgram(this.collisionsShader);
+        gl.uniform2iv(this.collisionsShaderVariables.uScreenSize, [1, 1]);
+        gl.uniform3fv(this.collisionsShaderVariables.uPlayerPos, this.player.pos);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         bindFBOAndSetViewport(gl, undefined, globalRenderState.screen);

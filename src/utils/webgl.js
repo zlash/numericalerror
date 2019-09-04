@@ -43,6 +43,10 @@ function createProgram(gl, vsSource, fsSource) {
     return shaderProgram;
 }
 
+function getUniformLocation(gl, shader, name) {
+    return gl.getUniformLocation(shader, name);
+}
+
 function createFBOWithTextureAttachment(gl, width, height, internalFormat, baseFormat, dataFormat) {
     let fbo = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);

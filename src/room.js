@@ -119,7 +119,12 @@ function buildRoomSdf(blocks) {
 
     return { sdf: sdfCode, auxCode: blocks.auxCode };
 }
-
+//Using trick from http://iquilezles.org/www/articles/normalsSDF/normalsSDF.htm
+function normalCodeFor(sdfFunc, accessSufix) {
+    return `
+#define ZERO min(uScreenSize.x,0)
+vec3 calcNormal(vec3 p){vec3 n=vec3(.0);for(int i=ZERO;i<4;i++){vec3 e=0.5773*(2.0*vec3((((i+3)>>1)&1),((i>>1)&1),(i&1))-1.0);n+=e*${sdfFunc}(p+0.0005*e)${accessSufix || ""};}return normalize(n);}`;
+}
 
 class RoomSet {
     constructor(gl, rooms) {
@@ -149,19 +154,19 @@ class RoomSet {
             roomData.shader = createProgram(gl, prependPrecisionAndVersion(roomVS), fs);
 
             roomData.aVertexPosition = gl.getAttribLocation(roomData.shader, 'aVertexPosition');
-            roomData.uProjectionMatrix = gl.getUniformLocation(roomData.shader, 'uProjectionMatrix');
-            roomData.uModelViewMatrix = gl.getUniformLocation(roomData.shader, 'uModelViewMatrix');
-            roomData.uClipModelViewMatrix = gl.getUniformLocation(roomData.shader, 'uClipModelViewMatrix');
-            roomData.uDynamicTransforms = gl.getUniformLocation(roomData.shader, 'uDynamicTransforms');
-            roomData.uScreenSize = gl.getUniformLocation(roomData.shader, 'uScreenSize');
-            roomData.uTimeSeconds = gl.getUniformLocation(roomData.shader, 'uTimeSeconds');
+            roomData.uProjectionMatrix = getUniformLocation(gl,roomData.shader, 'uProjectionMatrix');
+            roomData.uModelViewMatrix = getUniformLocation(gl,roomData.shader, 'uModelViewMatrix');
+            roomData.uClipModelViewMatrix = getUniformLocation(gl,roomData.shader, 'uClipModelViewMatrix');
+            roomData.uDynamicTransforms = getUniformLocation(gl,roomData.shader, 'uDynamicTransforms');
+            roomData.uScreenSize = getUniformLocation(gl,roomData.shader, 'uScreenSize');
+            roomData.uTimeSeconds = getUniformLocation(gl,roomData.shader, 'uTimeSeconds');
 
             this.rooms.push(roomData);
         }
     }
 
     generateCollisionsShader() {
-        let shader = `${roomFunctionsFS}${this.rooms.map(x => x.blocks.auxCode).join("")}float dynamicStuff(vec3 p){return 3.402823466e+38;}float worldSdf(vec3 pos){return ${makeChainOfMinsArray(this.rooms.map(x => makeChainOfMinsArray(Object.values(x.blocks.sdf))))};}${collisionsFS}`;
+        let shader = `layout(location = 0) out vec4 fragColor;uniform ivec2 uScreenSize;uniform vec3 uPlayerPos;${roomFunctionsFS}${this.rooms.map(x => x.blocks.auxCode).join("")}float dynamicStuff(vec3 p){return 3.402823466e+38;}float worldSdf(vec3 pos){return ${makeChainOfMinsArray(this.rooms.map(x => makeChainOfMinsArray(Object.values(x.blocks.sdf))))};}${normalCodeFor("worldSdf")}${collisionsFS}`;
 
         return prependPrecisionAndVersion(shader);
     }
@@ -189,7 +194,6 @@ class RoomSet {
 
 }
 
-//Using trick from http://iquilezles.org/www/articles/normalsSDF/normalsSDF.htm
 function buildRoomFS(roomSdf) {
     return prependPrecisionAndVersion(`
     ${roomHeaderFS}
@@ -197,26 +201,9 @@ function buildRoomFS(roomSdf) {
     ${roomFunctionsDynamicFS}
     ${roomSdf.auxCode}
 
-    vec2 room(vec3 pos)
-    {
-        float d = 3.402823466e+38;
-        float mat = -1.0;
-        ${roomSdf.sdf};
-        return vec2(d, mat);
-    }
+    vec2 room(vec3 pos){float d=3.402823466e+38;float mat=-1.0;${roomSdf.sdf};return vec2(d,mat);}
 
-    #define ZERO min(uScreenSize.x,0)
-
-    vec3 calcNormal( in vec3 pos )
-    {
-        vec3 n = vec3(0.0);
-        for( int i=ZERO; i<4; i++ )
-        {
-            vec3 e = 0.5773*(2.0*vec3((((i+3)>>1)&1),((i>>1)&1),(i&1))-1.0);
-            n += e*room(pos+0.0005*e).x;
-        }
-        return normalize(n);
-    }
+    ${normalCodeFor("room", ".x")}
     
     ${roomRenderFS}
     `);
