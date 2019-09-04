@@ -102,36 +102,45 @@ class Ingame {
             uPlayerPos: getUniformLocation(gl, this.collisionsShader, "uPlayerPos")
         };
         this.collisionsReadDst = new Float32Array(4);
-
+        this.frameNumber = 0;
     }
 
+
+
     update(dTimeSeconds) {
-        this.timeSeconds += dTimeSeconds;
+        dTimeSeconds = 1.0 / 60.0;
+
         let gl = globalRenderState.gl;
 
-        //Fetch collision results
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.collisionsFBO.fbo);
-        gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.FLOAT, this.collisionsReadDst);
+        if (this.timeSeconds > 0) {
 
-        let normal = v3Normalize(this.collisionsReadDst);
-        let dist = this.collisionsReadDst[3];
+            //Fetch collision results
+            gl.bindFramebuffer(gl.FRAMEBUFFER, this.collisionsFBO.fbo);
+            gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.FLOAT, this.collisionsReadDst);
 
-        if (dist < 0) {
-            this.player.pos = [0, 1, 0];
-            this.player.prevPos = [0, 1, 0];
+            let normal = v3Normalize(this.collisionsReadDst);
+            let dist = this.collisionsReadDst[3];
+
+            const radius = 0.05;
+            if (dist < radius) {
+                let v = v3Subtract(this.player.prevPos, this.player.pos);
+                let reflection = v3Reflect(v, normal);
+                v3Add(this.player.prevPos, v3Scale(normal, (dist - radius) * -1.5), this.player.prevPos);
+                this.player.pos = v3Add(this.player.prevPos, reflection);
+            }
         }
 
-        this.currentRoom = this.roomSet.roomFromPoint(this.player.pos);
+        this.currentRoom = this.roomSet.roomFromPoint(this.player.prevPos);
 
         this.player.update(dTimeSeconds);
 
-        this.viewMatrix = m4LookAt(v3Subtract(this.player.pos, this.player.dir), this.player.pos, this.player.up);
+        this.viewMatrix = m4LookAt(v3Subtract(this.player.prevPos, this.player.dir), this.player.prevPos, this.player.up);
 
         let pAngle = 90 * Math.PI / 180;
         this.projectionMatrix = m4Perspective(pAngle, globalRenderState.screen[0] / globalRenderState.screen[1], 0.05, 30);
 
         this.pmv = m4Multiply(this.projectionMatrix, this.viewMatrix);
-
+        this.timeSeconds += dTimeSeconds;
     }
 
     render() {
@@ -222,7 +231,7 @@ class Ingame {
             gl.uniformMatrix4fv(room.uProjectionMatrix, false, this.projectionMatrix);
             gl.uniformMatrix4fv(room.uClipModelViewMatrix, false, roomPair.clip ? roomPair.clip : m4Identity());
             gl.uniformMatrix4fv(room.uDynamicTransforms, false,
-                m4Invert(m4Multiply(m4Translation(this.player.pos), qToM4(this.player.qDir)))
+                m4Invert(m4Multiply(m4Translation(this.player.prevPos), qToM4(this.player.qDir)))
             );
 
             gl.uniform1f(room.uTimeSeconds, this.timeSeconds);

@@ -50,6 +50,11 @@ function v3Cross(v3a, v3b, result = v3Empty()) {
     return result;
 }
 
+function v3Reflect(v3a, normal, result = v3Empty()) {
+    v3Scale(normal, v3Dot(v3a, normal) * 2, result);
+    return v3Subtract(result, v3a, result);
+}
+
 
 function v2ToStrVec2(v2) {
     return `vec2(${numberToStringWithDecimals(v2[0])},${numberToStringWithDecimals(v2[1])})`;

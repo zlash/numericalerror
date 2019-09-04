@@ -73,7 +73,7 @@ function buildRoomSdfBlocks(roomData, rooms, idx) {
     addSdf(`sdfRoomCeil${idx}(pos)`, 0);
     addSdf(`dynamicStuff(pos)`, 2);
 
-    const floorHeight = 0.01;
+    const floorHeight = 0.5;
     let centerPoint = (p) => [p[0] - roomData.center[0], 0, p[2] - roomData.center[2]];
     let auxCode = `
 float sdfRoomShape${idx}(vec3 p) {
@@ -101,11 +101,11 @@ return sdfOpExtrusion(p,s*sqrt(d2d),${floorHeight});
 }
 
 float sdfRoomFloor${idx}(vec3 p) {
-    return sdfRoomShape${idx}(vec3(inverse(${m4ToStrMat4(m4Translation([roomData.center[0], roomData.floor - floorHeight * 0.5, roomData.center[2]]))}*${m4ToStrMat4(m4AxisAngleRotation([1, 0, 0], Math.PI * 0.5))})*vec4(p,1.0)));
+    return sdfRoomShape${idx}(vec3(inverse(${m4ToStrMat4(m4Translation([roomData.center[0], roomData.floor - floorHeight, roomData.center[2]]))}*${m4ToStrMat4(m4AxisAngleRotation([1, 0, 0], Math.PI * 0.5))})*vec4(p,1.0)));
 }
 
 float sdfRoomCeil${idx}(vec3 p) {
-    return sdfRoomShape${idx}(vec3(inverse(${m4ToStrMat4(m4Translation([roomData.center[0], roomData.ceiling + floorHeight * 0.5, roomData.center[2]]))}*${m4ToStrMat4(m4AxisAngleRotation([1, 0, 0], Math.PI * 0.5))})*vec4(p,1.0)));
+    return sdfRoomShape${idx}(vec3(inverse(${m4ToStrMat4(m4Translation([roomData.center[0], roomData.ceiling + floorHeight, roomData.center[2]]))}*${m4ToStrMat4(m4AxisAngleRotation([1, 0, 0], Math.PI * 0.5))})*vec4(p,1.0)));
 }
 `;
 
