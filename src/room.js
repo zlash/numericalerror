@@ -22,7 +22,7 @@ function buildWall(corner, side, len, floor, roomHeight) {
     return `sdfWall(vec3(${m4ToStrMat4(m4Invert(m))}*vec4(pos,1.0)), ${v2ToStrVec2([len * 0.5, roomHeight * 0.5])} )`;
 }
 
-function buildRoomSdfBlocks(roomData, rooms) {
+function buildRoomSdfBlocks(roomData, rooms, idx) {
 
     //I must return room segregated by materials 
 
@@ -69,14 +69,14 @@ function buildRoomSdfBlocks(roomData, rooms) {
 
     }
 
-    addSdf(`sdfRoomFloor(pos)`, 1);
-    addSdf(`sdfRoomCeil(pos)`, 0);
+    addSdf(`sdfRoomFloor${idx}(pos)`, 1);
+    addSdf(`sdfRoomCeil${idx}(pos)`, 0);
     addSdf(`dynamicStuff(pos)`, 2);
 
     const floorHeight = 0.01;
     let centerPoint = (p) => [p[0] - roomData.center[0], 0, p[2] - roomData.center[2]];
     let auxCode = `
-float sdfRoomShape(vec3 p) {
+float sdfRoomShape${idx}(vec3 p) {
 vec2 p2 = p.xy;
 float d2d = dot(p2-${v3xzToStrVec2(centerPoint(points[0]))},p2-${v3xzToStrVec2(centerPoint(points[0]))});
 float s = 1.0;
@@ -100,16 +100,16 @@ if(all(c)||all(not(c)))s*=-1.0;
 return sdfOpExtrusion(p,s*sqrt(d2d),${floorHeight});
 }
 
-float sdfRoomFloor(vec3 p) {
-    return sdfRoomShape(vec3(inverse(${m4ToStrMat4(m4Translation([roomData.center[0], roomData.floor - floorHeight * 0.5, roomData.center[2]]))}*${m4ToStrMat4(m4AxisAngleRotation([1, 0, 0], Math.PI * 0.5))})*vec4(p,1.0)));
+float sdfRoomFloor${idx}(vec3 p) {
+    return sdfRoomShape${idx}(vec3(inverse(${m4ToStrMat4(m4Translation([roomData.center[0], roomData.floor - floorHeight * 0.5, roomData.center[2]]))}*${m4ToStrMat4(m4AxisAngleRotation([1, 0, 0], Math.PI * 0.5))})*vec4(p,1.0)));
 }
 
-float sdfRoomCeil(vec3 p) {
-    return sdfRoomShape(vec3(inverse(${m4ToStrMat4(m4Translation([roomData.center[0], roomData.ceiling + floorHeight * 0.5, roomData.center[2]]))}*${m4ToStrMat4(m4AxisAngleRotation([1, 0, 0], Math.PI * 0.5))})*vec4(p,1.0)));
+float sdfRoomCeil${idx}(vec3 p) {
+    return sdfRoomShape${idx}(vec3(inverse(${m4ToStrMat4(m4Translation([roomData.center[0], roomData.ceiling + floorHeight * 0.5, roomData.center[2]]))}*${m4ToStrMat4(m4AxisAngleRotation([1, 0, 0], Math.PI * 0.5))})*vec4(p,1.0)));
 }
 `;
 
-    return { sdf: objectMap(sdfs, x => x.reduce((acc, cv) => { return `min(${acc},${cv})` })), auxCode: auxCode };
+    return { sdf: objectMap(sdfs, x => makeChainOfMinsArray(x)), auxCode: auxCode };
 }
 
 
@@ -119,6 +119,7 @@ function buildRoomSdf(blocks) {
 
     return { sdf: sdfCode, auxCode: blocks.auxCode };
 }
+
 
 class RoomSet {
     constructor(gl, rooms) {
@@ -138,14 +139,13 @@ class RoomSet {
             }
 
             roomData.center = roomData.points.reduce((acc, cur) => v3Add(acc, v3Scale(cur, 1 / roomData.points.length)), [0, 0, 0]);
+            roomData.idx = this.rooms.length;
 
-
-            let blocks = buildRoomSdfBlocks(roomData, rooms);
-
+            let blocks = buildRoomSdfBlocks(roomData, rooms, roomData.idx);
+            roomData.blocks = blocks;
             let roomSdf = buildRoomSdf(blocks);
             let fs = buildRoomFS(roomSdf);
 
-            roomData.idx = this.rooms.length;
             roomData.shader = createProgram(gl, prependPrecisionAndVersion(roomVS), fs);
 
             roomData.aVertexPosition = gl.getAttribLocation(roomData.shader, 'aVertexPosition');
@@ -160,6 +160,11 @@ class RoomSet {
         }
     }
 
+    generateCollisionsShader() {
+        let shader = `${roomFunctionsFS}${this.rooms.map(x => x.blocks.auxCode).join("")}float dynamicStuff(vec3 p){return 3.402823466e+38;}float worldSdf(vec3 pos){return ${makeChainOfMinsArray(this.rooms.map(x => makeChainOfMinsArray(Object.values(x.blocks.sdf))))};}${collisionsFS}`;
+
+        return prependPrecisionAndVersion(shader);
+    }
 
     roomFromPoint(point) {
         let floorPoint = [point[0], 0, point[2]];
@@ -184,14 +189,12 @@ class RoomSet {
 
 }
 
-
-
-
 //Using trick from http://iquilezles.org/www/articles/normalsSDF/normalsSDF.htm
 function buildRoomFS(roomSdf) {
     return prependPrecisionAndVersion(`
     ${roomHeaderFS}
     ${roomFunctionsFS}
+    ${roomFunctionsDynamicFS}
     ${roomSdf.auxCode}
 
     vec2 room(vec3 pos)

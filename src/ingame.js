@@ -94,7 +94,7 @@ class Ingame {
         this.roomSet = new RoomSet(gl, sampleRooms);
         this.timeSeconds = 0.0;
 
-        this.collisionsShader = createProgram(gl, prependPrecisionAndVersion(screenQuadVS), prependPrecisionAndVersion(collisionsFS));
+        this.collisionsShader = createProgram(gl, prependPrecisionAndVersion(screenQuadVS), this.roomSet.generateCollisionsShader());
         this.collisionsFBO = createFBOWithTextureAttachment(gl, 1, 1, gl.RGBA32F, gl.RGBA, gl.FLOAT);
         this.collisionsShaderVariables = {
             aVertexPosition: gl.getAttribLocation(this.collisionsShader, 'aVertexPosition')
@@ -110,6 +110,7 @@ class Ingame {
         //Fetch collision results
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.collisionsFBO.fbo);
         gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.FLOAT, this.collisionsReadDst);
+     
 
         this.currentRoom = this.roomSet.roomFromPoint(this.player.pos);
 

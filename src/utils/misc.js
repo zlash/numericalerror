@@ -8,10 +8,11 @@ function objectMap(obj, f) {
 }
 
 
-
-
 //f (acc, curValue, curKey)
 function objectReduce(obj, f, initialValue) {
     return Object.keys(obj).reduce((acc, cur) => f(acc, obj[cur], cur), initialValue);
 }
 
+function makeChainOfMinsArray(arr) {
+    return arr.reduce((acc, cv) => `min(${acc},${cv})`);
+}

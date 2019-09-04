@@ -1,3 +1,10 @@
+if (DEBUG) {
+    function glReverseEnumLookUp(value) {
+        let k = Object.getOwnPropertyNames(WebGL2RenderingContext).find(x =>WebGL2RenderingContext[x] === value);
+        return k || "<ENUM VALUE NOT FOUND>";
+    }
+}
+
 function loadShader(gl, type, source) {
     const shader = gl.createShader(type);
     gl.shaderSource(shader, source);
@@ -6,7 +13,7 @@ function loadShader(gl, type, source) {
     if (DEBUG) {
         if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
             alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
-            console.log("FAILED SHADER:");
+            console.log(`FAILED SHADER: (TYPE ${glReverseEnumLookUp(type)})`);
             console.log("============================================");
             console.log(source);
             gl.deleteShader(shader);
