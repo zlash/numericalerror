@@ -36,35 +36,12 @@ function createProgram(gl, vsSource, fsSource) {
     return shaderProgram;
 }
 
-function createFenceSync(gl) {
-    return gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
-}
-
-function waitOnFenceSync(gl, fence) {
-    gl.clientWaitSync(fence, 0, 0);
-    gl.deleteSync(fence);
-}
-
-function bindPackPBO(gl, pbo) {
-    gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pbo);
-}
-
-function createPackPBO(gl, size) {
-    const pbo = gl.createBuffer();
-    bindPackPBO(gl, pbo);
-    gl.bufferData(gl.PIXEL_PACK_BUFFER, size, gl.STREAM_READ);
-    if (DEBUG) {
-        console.log("Created PBO of size ", gl.getBufferParameter(gl.PIXEL_PACK_BUFFER, gl.BUFFER_SIZE), " and usage ", gl.getBufferParameter(gl.PIXEL_PACK_BUFFER, gl.BUFFER_USAGE));
-    }
-    return pbo;
-}
-
 function createFBOWithTextureAttachment(gl, width, height, internalFormat, baseFormat, dataFormat) {
     let fbo = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
     let tex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, tex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, width, height, 0, baseFormat, dataFormat, null);
+    gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, width, height, 0, baseFormat, dataFormat, undefined);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
     if (DEBUG) {
         let completeness = gl.checkFramebufferStatus(gl.FRAMEBUFFER);

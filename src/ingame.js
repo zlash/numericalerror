@@ -100,9 +100,6 @@ class Ingame {
             aVertexPosition: gl.getAttribLocation(this.collisionsShader, 'aVertexPosition')
         };
         this.collisionsReadDst = new Float32Array(4);
-        this.collisionsPBO = createPackPBO(gl, 1 * 1 * 4 * 4); //w*h*elements*datasize
-
-        this.collisionsSync = createFenceSync(gl);
 
     }
 
@@ -110,10 +107,11 @@ class Ingame {
         this.timeSeconds += dTimeSeconds;
         let gl = globalRenderState.gl;
 
-        bindPackPBO(gl, this.collisionsPBO);
-        waitOnFenceSync(gl, this.collisionsSync);
-        gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, this.collisionsReadDst);
-        console.log(this.collisionsReadDst)
+        //Fetch collision results
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.collisionsFBO.fbo);
+        gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.FLOAT, this.collisionsReadDst);
+        console.log(this.collisionsReadDst);
+
 
         this.currentRoom = this.roomSet.roomFromPoint(this.player.pos);
 
@@ -139,10 +137,6 @@ class Ingame {
         gl.enableVertexAttribArray(this.collisionsShaderVariables.aVertexPosition);
         gl.useProgram(this.collisionsShader);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-        bindPackPBO(gl, this.collisionsPBO);
-        gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.FLOAT, 0);
-        this.collisionsSync = createFenceSync(gl);
 
         bindFBOAndSetViewport(gl, undefined, globalRenderState.screen);
 
