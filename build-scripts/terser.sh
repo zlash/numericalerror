@@ -5,7 +5,7 @@ DIST_DIR="$2"
 
 JS_FILES=$(find "$SRC_DIR" -name '*.js')
 
-TERSER_OPTIONS="--mangle --toplevel --warn --mangle-props reserved=[movementX,movementY,RGBA32F,RGBA16F,RGB32F]"
+TERSER_OPTIONS="--mangle --toplevel --warn --mangle-props reserved=[movementX,movementY,RGBA32F,RGBA16F,RGB32F,PIXEL_PACK_BUFFER,STREAM_READ,getBufferSubData,SYNC_GPU_COMMANDS_COMPLETE,SYNC_STATUS,SIGNALED,getSyncParameter,fenceSync,deleteSync,clientWaitSync]"
 
 OUTPUT=$(yarn run -s terser $JS_FILES ${TERSER_OPTIONS} --compress ecma=6,pure_funcs=console.log --define DEBUG=false)
 OUTPUT_DBG=$(yarn run -s terser $JS_FILES ${TERSER_OPTIONS} --compress ecma=6 --define DEBUG=true)

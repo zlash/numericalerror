@@ -50,7 +50,7 @@ function requestCanvasPointerLock() {
 }
 
 function getExtension(gl, extension) {
-    const ext = gl.getExtension("EXT_color_buffer_float");
+    const ext = gl.getExtension(extension);
     if (!ext) {
         throw new Error(`Needs ${extension}`);
     }
