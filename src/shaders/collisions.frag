@@ -25,7 +25,7 @@ void main()
 
         if (t < viewLen) {
             vec3 n = calcNormal(posA + view * t);
-            result = vec4(posA, t);
+            result = vec4(posA, t*0.99);
         }
     }
 

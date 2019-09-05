@@ -13,6 +13,41 @@ let sampleRooms = [[
 ]];
 
 
+
+class CollisionableMovingObject {
+    constructor() {
+        this.pos = [0, 0, 0];
+        this.nextPos = [0, 0, 0];
+        this.radius = 0.0; // Bigger than 0, ball mode
+    }
+
+    onUpdate(dTimeSeconds, curVel, curDirection, collisionPos, collisionNormal) {
+        return [0, 0, 0];
+    }
+
+    update(dTimeSeconds) {
+        if (this.query == undefined) return;
+
+        /*let result = this.sdfQueryManager.fetchQuery(this.query);
+        let v = v3Subtract(this.player.pos, this.player.prevPos);
+        let direction = v3Normalize(v);
+        let normal = v3Normalize(result);*/
+
+        //Clamp next pos here with
+
+
+        let dirAcc = this.onUpdate(dTimeSeconds, curVel, curDirection, collisionPos, collisionNormal);
+
+        let nextPos = this.nextPos;
+        this.nextPos = v3Add(v3Subtract(v3Scale(this.nextPos, 2), this.pos), dirAcc);
+        this.pos = nextPos;
+
+        this.query = this.sdfQueryManager.submitQuery(...this.pos, ...this.nextPos);
+    }
+
+}
+
+
 class Player {
     constructor() {
         this.pos = new Float32Array([0, 3.5, 0.0]);
