@@ -166,7 +166,7 @@ class RoomSet {
     }
 
     generateCollisionsShader() {
-        let shader = `layout(location = 0) out vec4 fragColor;uniform ivec2 uScreenSize;uniform vec3 uPlayerPos;${roomFunctionsFS}${this.rooms.map(x => x.blocks.auxCode).join("")}float dynamicStuff(vec3 p){return 3.402823466e+38;}float worldSdf(vec3 pos){return ${makeChainOfMinsArray(this.rooms.map(x => makeChainOfMinsArray(Object.values(x.blocks.sdf))))};}${normalCodeFor("worldSdf")}${collisionsFS}`;
+        let shader = `layout(location = 0) out vec4 fragColor;uniform ivec2 uScreenSize;${roomFunctionsFS}${this.rooms.map(x => x.blocks.auxCode).join("")}float dynamicStuff(vec3 p){return 3.402823466e+38;}float worldSdf(vec3 pos){return ${makeChainOfMinsArray(this.rooms.map(x => makeChainOfMinsArray(Object.values(x.blocks.sdf))))};}${normalCodeFor("worldSdf")}${collisionsFS}`;
 
         return prependPrecisionAndVersion(shader);
     }

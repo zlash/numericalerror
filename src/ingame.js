@@ -105,17 +105,22 @@ class Ingame {
 
 
         //Fetch collision results
-        /*let normal = v3Normalize(this.collisionsReadDst);
-        let dist = this.collisionsReadDst[3];
 
-        const radius = 0.05;
-        if (dist < radius) {
-            let v = v3Subtract(this.player.prevPos, this.player.pos);
-            let reflection = v3Reflect(v, normal);
-            v3Add(this.player.prevPos, v3Scale(normal, (dist - radius) * -1.5), this.player.prevPos);
-            this.player.pos = v3Add(this.player.prevPos, reflection);
+        if (this.query != undefined) {
+            let result = this.sdfQueryManager.fetchQuery(this.query);
+            console.log(result);
+            let dist = result[3];
+            let normal = v3Normalize(result);
+
+            const radius = 0.05;
+            if (dist < radius) {
+                let v = v3Subtract(this.player.prevPos, this.player.pos);
+                let reflection = v3Reflect(v, normal);
+                v3Add(this.player.prevPos, v3Scale(normal, (dist - radius) * -1.5), this.player.prevPos);
+                this.player.pos = v3Add(this.player.prevPos, reflection);
+            }
         }
-        */
+        this.query = this.sdfQueryManager.submitQuery(...this.player.pos);
         ////
 
         this.currentRoom = this.roomSet.roomFromPoint(this.player.prevPos);

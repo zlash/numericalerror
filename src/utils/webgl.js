@@ -48,20 +48,24 @@ function getUniformLocation(gl, shader, name) {
 }
 
 function createTexture2d(gl, width, height, internalFormat, baseFormat, dataFormat) {
-    return gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, width, height, 0, baseFormat, dataFormat, undefined);
+    let tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, width, height, 0, baseFormat, dataFormat, undefined);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    return tex;
 }
 
 function createFBOWithTextureAttachment(gl, width, height, internalFormat, baseFormat, dataFormat) {
     let fbo = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-    let tex = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, tex);
-    createTexture2d(gl, width, height, internalFormat, baseFormat, dataFormat);
+
+    let tex = createTexture2d(gl, width, height, internalFormat, baseFormat, dataFormat);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
     if (DEBUG) {
         let completeness = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
         if (completeness != gl.FRAMEBUFFER_COMPLETE) {
-            console.log("FBO status check FAILED!: ", completeness.toString(16));
+            console.log("FBO status check FAILED!: ", glReverseEnumLookUp(completeness));
         }
     }
     return { fbo: fbo, tex: tex };

@@ -5,7 +5,7 @@ DIST_DIR="$2"
 
 JS_FILES=$(find "$SRC_DIR" -name '*.js')
 
-TERSER_OPTIONS="--mangle --ecma 6 --source-map --toplevel --warn --mangle-props reserved=[movementX,movementY,RGBA32F,RGBA16F,RGB32F]"
+TERSER_OPTIONS="--mangle --ecma 6 --toplevel --warn --mangle-props reserved=[movementX,movementY,RGBA32F,RGBA16F,RGB32F,texStorage2D,TEXTURE_BASE_LEVEL,TEXTURE_MAX_LEVEL]"
 
 OUTPUT=$(yarn run -s terser $JS_FILES ${TERSER_OPTIONS} --compress ecma=6,pure_funcs=console.log --define DEBUG=false)
 OUTPUT_DBG=$(yarn run -s terser $JS_FILES ${TERSER_OPTIONS} --compress ecma=6 --define DEBUG=true)
@@ -18,8 +18,8 @@ zip -j -9 "$DIST_DIR/dist.zip" "$DIST_DIR/index.html"
 cp "$DIST_DIR/dist.zip" "$DIST_DIR/dist.optimized.zip"
 ./build-scripts/optimize_file.sh -9 "$DIST_DIR/dist.optimized.zip"
 
-convert -interlace plane -depth 8 -size $(stat --printf="%s" $DIST_DIR/index.html)x1+0 gray:$DIST_DIR/index.html $DIST_DIR/dist.png
-./build-scripts/optimize_file.sh -9 "$DIST_DIR/dist.png"
+#convert -interlace plane -depth 8 -size $(stat --printf="%s" $DIST_DIR/index.html)x1+0 gray:$DIST_DIR/index.html $DIST_DIR/dist.png
+#./build-scripts/optimize_file.sh -9 "$DIST_DIR/dist.png"
 
-cwebp -lossless $DIST_DIR/dist.png -o $DIST_DIR/dist.webp
-./build-scripts/optimize_file.sh -9 "$DIST_DIR/dist.webp"
+#cwebp -lossless $DIST_DIR/dist.png -o $DIST_DIR/dist.webp
+#./build-scripts/optimize_file.sh -9 "$DIST_DIR/dist.webp"
