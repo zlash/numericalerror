@@ -15,8 +15,8 @@ let sampleRooms = [[
 
 class Player {
     constructor() {
-        this.pos = [0, 3.5, 0];
-        this.prevPos = [0, 3.5, 1.0];
+        this.pos = new Float32Array([0, 3.5, 0.0]);
+        this.prevPos = new Float32Array([0, 3.5, 0.0]);
         this.qDir = qIdentity();
         this.dir = [0, 0, -1];
         this.up = [0, 1, 0];
@@ -45,7 +45,7 @@ class Player {
         let acc = 0;
 
         if (isKeyDown(KeyCodeUp)) {
-            acc += dTimeSeconds * 3;
+            acc += dTimeSeconds * 4;
         }
         if (isKeyDown(KeyCodeDown)) {
             acc -= dTimeSeconds;
@@ -53,10 +53,19 @@ class Player {
 
         let dirAcc = v3Scale(this.dir, acc * dTimeSeconds);
 
-        let prevPos = this.pos;
-        this.pos = v3Add(v3Subtract(v3Scale(this.pos, 2), this.prevPos), dirAcc);
+        let prevPos = new Float32Array(this.pos);
+        v3Add(v3Subtract(v3Scale(this.pos, 2), this.prevPos), dirAcc, this.pos);
         this.prevPos = prevPos;
 
+        //Speed limit
+        /*
+        let v = v3Subtract(this.pos, this.prevPos);
+        let vLen = v3Length(v);
+        if (vLen > 0.5) {
+            v = v3Scale(v, 0.5 / vLen);
+        }
+        this.pos = v3Add(this.prevPos, v);
+        */
 
 
         /*
@@ -108,9 +117,32 @@ class Ingame {
 
         if (this.query != undefined) {
             let result = this.sdfQueryManager.fetchQuery(this.query);
+            let v = v3Subtract(this.player.pos, this.player.prevPos);
+            let direction = v3Normalize(v);
+            let normal = v3Normalize(result);
+
+            const radius = 0.1;
+
+            if (direction != undefined && normal != undefined) {
+                console.log(result, this.player.prevPos, this.player.pos);
+
+
+                v3Add(this.player.prevPos, v3Scale(direction, result[3] * 0.8), this.player.prevPos);
+                let reflection = v3Reflect(v3Subtract(this.player.prevPos, this.player.pos), normal);
+
+
+                v3Add(this.player.prevPos, v3Scale(reflection, 1.25), this.player.pos);
+
+            }
+
+
+            // result = vec4(vec2(n), t, 0.0);
+
+
+            /*
             let dist = result[3];
             let normal = v3Normalize(result);
-            console.log(dist);
+            console.log(result);
             const radius = 0.1;
             if (dist < radius) {
                 let v = v3Subtract(this.player.prevPos, this.player.pos);
@@ -123,19 +155,20 @@ class Ingame {
                 //this.player.pos = v3Add(this.player.prevPos, v3Scale(reflection, 1.2));
                 console.log(dist, normal);
                 console.log(v);
-            }
+            }*/
         }
-        this.query = this.sdfQueryManager.submitQuery(...this.player.pos);
+
         ////
 
         this.currentRoom = this.roomSet.roomFromPoint(this.player.prevPos);
-
         this.player.update(dTimeSeconds);
+
+        this.query = this.sdfQueryManager.submitQuery(...this.player.prevPos, ...this.player.pos);
 
         this.viewMatrix = m4LookAt(v3Subtract(this.player.prevPos, this.player.dir), this.player.prevPos, this.player.up);
 
         let pAngle = 75 * Math.PI / 180;
-        this.projectionMatrix = m4Perspective(pAngle, globalRenderState.screen[0] / globalRenderState.screen[1], 0.05, 30);
+        this.projectionMatrix = m4Perspective(pAngle, globalRenderState.screen[0] / globalRenderState.screen[1], 0.05, 20);
 
         this.pmv = m4Multiply(this.projectionMatrix, this.viewMatrix);
         this.timeSeconds += dTimeSeconds;

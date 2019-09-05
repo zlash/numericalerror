@@ -1,4 +1,5 @@
 const MaxQueries = 1024;
+const QueriesEntries = 2;
 
 class SDFQueryManager {
     constructor(gl, roomSet) {
@@ -8,17 +9,21 @@ class SDFQueryManager {
         this.uScreenSize = getUniformLocation(gl, this.shader, "uScreenSize");
         this.uPositionsSampler = getUniformLocation(gl, this.shader, "uPositionsSampler");
         this.readDst = (new Float32Array(4 * MaxQueries)).fill(SomeBigFloat);
-        this.queries = (new Float32Array(3 * MaxQueries)).fill(SomeBigFloat);
-        this.uploadTexture = createTexture2d(gl, MaxQueries, 1, gl.RGB32F, gl.RGB, gl.FLOAT);
+        this.queries = (new Float32Array(3 * MaxQueries * QueriesEntries)).fill(SomeBigFloat);
+        this.uploadTexture = createTexture2d(gl, MaxQueries, QueriesEntries, gl.RGB32F, gl.RGB, gl.FLOAT);
         this.nQueries = 0;
     }
 
-    submitQuery(x, y, z) {
+    submitQuery(xa, ya, za, xb, yb, zb) {
         let n = this.nQueries++;
         let idx = n * 4;
-        this.queries[idx] = x;
-        this.queries[idx + 1] = y;
-        this.queries[idx + 2] = z;
+        this.queries[idx] = xa;
+        this.queries[idx + 1] = ya;
+        this.queries[idx + 2] = za;
+        idx += MaxQueries * 3;
+        this.queries[idx] = xb;
+        this.queries[idx + 1] = yb;
+        this.queries[idx + 2] = zb;
         return n;
     }
 
@@ -43,7 +48,7 @@ class SDFQueryManager {
         gl.uniform2iv(this.uScreenSize, [MaxQueries, 1]);
 
         gl.bindTexture(gl.TEXTURE_2D, this.uploadTexture);
-        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, MaxQueries, 1, gl.RGB, gl.FLOAT, this.queries);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, MaxQueries, QueriesEntries, gl.RGB, gl.FLOAT, this.queries);
         gl.uniform1i(this.uPositionsSampler, 0);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);

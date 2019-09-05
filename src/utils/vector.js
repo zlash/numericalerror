@@ -37,6 +37,9 @@ function v3Length(v3a) {
 
 function v3Normalize(v3a, result = v3Empty()) {
     let len = v3Length(v3a);
+    if (len == 0) {
+        return undefined;
+    }
     result[0] = v3a[0] / len;
     result[1] = v3a[1] / len;
     result[2] = v3a[2] / len;
