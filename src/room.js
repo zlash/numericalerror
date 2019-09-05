@@ -97,7 +97,7 @@ if(all(c)||all(not(c)))s*=-1.0;
 
     }).join("")}
 
-return sdfOpExtrusion(p,s*sqrt(d2d),${floorHeight});
+return sdfOpExtrusion(p,s*sqrt(d2d),${numberToStringWithDecimals(floorHeight)});
 }
 
 float sdfRoomFloor${idx}(vec3 p) {
@@ -154,12 +154,12 @@ class RoomSet {
             roomData.shader = createProgram(gl, prependPrecisionAndVersion(roomVS), fs);
 
             roomData.aVertexPosition = gl.getAttribLocation(roomData.shader, 'aVertexPosition');
-            roomData.uProjectionMatrix = getUniformLocation(gl,roomData.shader, 'uProjectionMatrix');
-            roomData.uModelViewMatrix = getUniformLocation(gl,roomData.shader, 'uModelViewMatrix');
-            roomData.uClipModelViewMatrix = getUniformLocation(gl,roomData.shader, 'uClipModelViewMatrix');
-            roomData.uDynamicTransforms = getUniformLocation(gl,roomData.shader, 'uDynamicTransforms');
-            roomData.uScreenSize = getUniformLocation(gl,roomData.shader, 'uScreenSize');
-            roomData.uTimeSeconds = getUniformLocation(gl,roomData.shader, 'uTimeSeconds');
+            roomData.uProjectionMatrix = getUniformLocation(gl, roomData.shader, 'uProjectionMatrix');
+            roomData.uModelViewMatrix = getUniformLocation(gl, roomData.shader, 'uModelViewMatrix');
+            roomData.uClipModelViewMatrix = getUniformLocation(gl, roomData.shader, 'uClipModelViewMatrix');
+            roomData.uDynamicTransforms = getUniformLocation(gl, roomData.shader, 'uDynamicTransforms');
+            roomData.uScreenSize = getUniformLocation(gl, roomData.shader, 'uScreenSize');
+            roomData.uTimeSeconds = getUniformLocation(gl, roomData.shader, 'uTimeSeconds');
 
             this.rooms.push(roomData);
         }

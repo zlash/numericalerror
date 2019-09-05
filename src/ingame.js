@@ -15,8 +15,8 @@ let sampleRooms = [[
 
 class Player {
     constructor() {
-        this.pos = [0, 1, 0];
-        this.prevPos = [0, 1, 0];
+        this.pos = [0, 3.5, 0];
+        this.prevPos = [0, 3.5, 1.0];
         this.qDir = qIdentity();
         this.dir = [0, 0, -1];
         this.up = [0, 1, 0];
@@ -45,7 +45,7 @@ class Player {
         let acc = 0;
 
         if (isKeyDown(KeyCodeUp)) {
-            acc += dTimeSeconds;
+            acc += dTimeSeconds * 3;
         }
         if (isKeyDown(KeyCodeDown)) {
             acc -= dTimeSeconds;
@@ -108,16 +108,21 @@ class Ingame {
 
         if (this.query != undefined) {
             let result = this.sdfQueryManager.fetchQuery(this.query);
-            console.log(result);
             let dist = result[3];
             let normal = v3Normalize(result);
-
-            const radius = 0.05;
+            console.log(dist);
+            const radius = 0.1;
             if (dist < radius) {
                 let v = v3Subtract(this.player.prevPos, this.player.pos);
-                let reflection = v3Reflect(v, normal);
-                v3Add(this.player.prevPos, v3Scale(normal, (dist - radius) * -1.5), this.player.prevPos);
-                this.player.pos = v3Add(this.player.prevPos, reflection);
+                //let reflection = v3Reflect(v, normal);
+                let reflection = v3Scale(v, -1);
+                let scaledNormal = v3Scale(normal, (dist - radius) * -1.5);
+                console.log("Scaled normal", scaledNormal);
+                v3Add(this.player.prevPos, scaledNormal, this.player.prevPos);
+                this.player.pos = this.player.prevPos;
+                //this.player.pos = v3Add(this.player.prevPos, v3Scale(reflection, 1.2));
+                console.log(dist, normal);
+                console.log(v);
             }
         }
         this.query = this.sdfQueryManager.submitQuery(...this.player.pos);
@@ -129,7 +134,7 @@ class Ingame {
 
         this.viewMatrix = m4LookAt(v3Subtract(this.player.prevPos, this.player.dir), this.player.prevPos, this.player.up);
 
-        let pAngle = 90 * Math.PI / 180;
+        let pAngle = 75 * Math.PI / 180;
         this.projectionMatrix = m4Perspective(pAngle, globalRenderState.screen[0] / globalRenderState.screen[1], 0.05, 30);
 
         this.pmv = m4Multiply(this.projectionMatrix, this.viewMatrix);
