@@ -1,3 +1,5 @@
+let SomeBigFloat = 3.402823466e+38;
+
 function numberToStringWithDecimals(n) {
     n = Number(n);
     return `${n}${n === Math.trunc(n) ? ".0" : ""}`;

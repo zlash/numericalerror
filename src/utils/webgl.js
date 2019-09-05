@@ -1,6 +1,6 @@
 if (DEBUG) {
     function glReverseEnumLookUp(value) {
-        let k = Object.getOwnPropertyNames(WebGL2RenderingContext).find(x =>WebGL2RenderingContext[x] === value);
+        let k = Object.getOwnPropertyNames(WebGL2RenderingContext).find(x => WebGL2RenderingContext[x] === value);
         return k || "<ENUM VALUE NOT FOUND>";
     }
 }
@@ -47,12 +47,16 @@ function getUniformLocation(gl, shader, name) {
     return gl.getUniformLocation(shader, name);
 }
 
+function createTexture2d(gl, width, height, internalFormat, baseFormat, dataFormat) {
+    return gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, width, height, 0, baseFormat, dataFormat, undefined);
+}
+
 function createFBOWithTextureAttachment(gl, width, height, internalFormat, baseFormat, dataFormat) {
     let fbo = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
     let tex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, tex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, width, height, 0, baseFormat, dataFormat, undefined);
+    createTexture2d(gl, width, height, internalFormat, baseFormat, dataFormat);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
     if (DEBUG) {
         let completeness = gl.checkFramebufferStatus(gl.FRAMEBUFFER);

@@ -92,43 +92,31 @@ class Ingame {
         }
 
         this.roomSet = new RoomSet(gl, sampleRooms);
+        this.sdfQueryManager = new SDFQueryManager(gl, this.roomSet);
         this.timeSeconds = 0.0;
-
-        this.collisionsShader = createProgram(gl, prependPrecisionAndVersion(screenQuadVS), this.roomSet.generateCollisionsShader());
-        this.collisionsFBO = createFBOWithTextureAttachment(gl, 1, 1, gl.RGBA32F, gl.RGBA, gl.FLOAT);
-        this.collisionsShaderVariables = {
-            aVertexPosition: gl.getAttribLocation(this.collisionsShader, "aVertexPosition"),
-            uScreenSize: getUniformLocation(gl, this.collisionsShader, "uScreenSize"),
-            uPlayerPos: getUniformLocation(gl, this.collisionsShader, "uPlayerPos")
-        };
-        this.collisionsReadDst = new Float32Array(4);
-        this.frameNumber = 0;
     }
-
-
 
     update(dTimeSeconds) {
         dTimeSeconds = 1.0 / 60.0;
 
         let gl = globalRenderState.gl;
 
-        if (this.timeSeconds > 0) {
+        this.sdfQueryManager.fetchQueries(gl);
 
-            //Fetch collision results
-            gl.bindFramebuffer(gl.FRAMEBUFFER, this.collisionsFBO.fbo);
-            gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.FLOAT, this.collisionsReadDst);
 
-            let normal = v3Normalize(this.collisionsReadDst);
-            let dist = this.collisionsReadDst[3];
+        //Fetch collision results
+        /*let normal = v3Normalize(this.collisionsReadDst);
+        let dist = this.collisionsReadDst[3];
 
-            const radius = 0.05;
-            if (dist < radius) {
-                let v = v3Subtract(this.player.prevPos, this.player.pos);
-                let reflection = v3Reflect(v, normal);
-                v3Add(this.player.prevPos, v3Scale(normal, (dist - radius) * -1.5), this.player.prevPos);
-                this.player.pos = v3Add(this.player.prevPos, reflection);
-            }
+        const radius = 0.05;
+        if (dist < radius) {
+            let v = v3Subtract(this.player.prevPos, this.player.pos);
+            let reflection = v3Reflect(v, normal);
+            v3Add(this.player.prevPos, v3Scale(normal, (dist - radius) * -1.5), this.player.prevPos);
+            this.player.pos = v3Add(this.player.prevPos, reflection);
         }
+        */
+        ////
 
         this.currentRoom = this.roomSet.roomFromPoint(this.player.prevPos);
 
@@ -144,18 +132,9 @@ class Ingame {
     }
 
     render() {
-
         let gl = globalRenderState.gl;
 
-        bindFBOAndSetViewport(gl, this.collisionsFBO.fbo, [1, 1]);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, globalRenderState.quadBuffer);
-        gl.vertexAttribPointer(this.collisionsShaderVariables.aVertexPosition, 2, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(this.collisionsShaderVariables.aVertexPosition);
-        gl.useProgram(this.collisionsShader);
-        gl.uniform2iv(this.collisionsShaderVariables.uScreenSize, [1, 1]);
-        gl.uniform3fv(this.collisionsShaderVariables.uPlayerPos, this.player.pos);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        this.sdfQueryManager.runGpuQuery(gl);
 
         bindFBOAndSetViewport(gl, undefined, globalRenderState.screen);
 
