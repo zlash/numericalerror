@@ -6,5 +6,13 @@ float sdfPlayerShip(vec3 pos)
 
 float dynamicStuff(vec3 pos)
 {
-    return sdfPlayerShip(vec3(uDynamicTransforms[0] * vec4(pos, 1.0)));
+    int i = 0;
+    float d = sdfPlayerShip(vec3(uDynamicTransforms[0] * vec4(pos, 1.0)));
+
+    while (dynO[i].w >= 0.0) {
+        d = min(d, length(pos - vec3(dynO[i])) - 0.1);
+        i++;
+    }
+
+    return d;
 }

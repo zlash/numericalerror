@@ -47,6 +47,24 @@ function getUniformLocation(gl, shader, name) {
     return gl.getUniformLocation(shader, name);
 }
 
+
+function bindUniformBufferWithIndex(gl, ubo, index) {
+    gl.bindBuffer(gl.UNIFORM_BUFFER, ubo);
+    gl.bindBufferBase(gl.UNIFORM_BUFFER, index, ubo);
+}
+
+function createUniformBuffer(gl, size) {
+    let ubo = gl.createBuffer();
+    gl.bindBuffer(gl.UNIFORM_BUFFER, ubo);
+    gl.bufferData(gl.UNIFORM_BUFFER, size, gl.DYNAMIC_DRAW);
+    return ubo;
+}
+
+function updateUniformBuffer(gl, ubo, data) {
+    gl.bindBuffer(gl.UNIFORM_BUFFER, ubo);
+    gl.bufferSubData(gl.UNIFORM_BUFFER, 0, data);
+}
+
 function createTexture2d(gl, width, height, internalFormat, baseFormat, dataFormat) {
     let tex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, tex);

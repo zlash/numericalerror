@@ -1,3 +1,4 @@
+
 /*
     floor height
     ceil height
@@ -128,6 +129,7 @@ vec3 calcNormal(vec3 p){vec3 n=vec3(.0);for(int i=ZERO;i<4;i++){vec3 e=0.5773*(2
 
 class RoomSet {
     constructor(gl, rooms) {
+        this.dynamicObjects = new DynamicRoomObjects(gl);
         this.rooms = [];
 
         for (let room of rooms) {
@@ -160,6 +162,11 @@ class RoomSet {
             roomData.uDynamicTransforms = getUniformLocation(gl, roomData.shader, 'uDynamicTransforms');
             roomData.uScreenSize = getUniformLocation(gl, roomData.shader, 'uScreenSize');
             roomData.uTimeSeconds = getUniformLocation(gl, roomData.shader, 'uTimeSeconds');
+
+            let uboDO=this.dynamicObjects.ubo;
+            let uboDOIndex = gl.getUniformBlockIndex(roomData.shader, 'DO');
+            bindUniformBufferWithIndex(gl,uboDO, 0);
+            gl.uniformBlockBinding(roomData.shader, uboDOIndex, 0);
 
             this.rooms.push(roomData);
         }
@@ -194,9 +201,11 @@ class RoomSet {
 
 }
 
+
 function buildRoomFS(roomSdf) {
     return prependPrecisionAndVersion(`
     ${roomHeaderFS}
+    ${DynamicObjectsUBlock}
     ${roomFunctionsFS}
     ${roomFunctionsDynamicFS}
     ${roomSdf.auxCode}

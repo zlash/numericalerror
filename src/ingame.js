@@ -65,6 +65,7 @@ class Player extends CollisionableMovingObject {
         this.qDir = qIdentity();
         this.dir = [0, 0, -1];
         this.up = [0, 1, 0];
+        this.balloons = [];
     }
 
     onUpdate(dTimeSeconds, curVel, curDirection, collisionPos, collisionNormal) {
@@ -97,6 +98,14 @@ class Player extends CollisionableMovingObject {
         }
         if (isKeyDown(KeyCodeDown)) {
             acc -= mv;
+        }
+
+        if (isKeyDown(KeyCodeShoot)) {
+            this.balloons.push([...this.pos, 1]);
+        }
+
+        for (let b of this.balloons) {
+            this.game.roomSet.dynamicObjects.submitObject(...b);
         }
 
         return v3Scale(this.dir, acc * dTimeSeconds);
@@ -155,6 +164,8 @@ class Ingame {
         this.sdfQueryManager.runGpuQuery(gl);
 
         bindFBOAndSetViewport(gl, undefined, globalRenderState.screen);
+
+        this.roomSet.dynamicObjects.submitUBO(gl);
 
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.disable(gl.DEPTH_TEST);
