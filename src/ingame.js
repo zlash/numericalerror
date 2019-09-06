@@ -15,7 +15,8 @@ let sampleRooms = [[
 
 
 class CollisionableMovingObject {
-    constructor() {
+    constructor(game) {
+        this.game = game;
         this.pos = [0, 0, 0];
         this.nextPos = [0, 0, 0];
         this.radius = 0.0; // Bigger than 0, ball mode
@@ -25,39 +26,48 @@ class CollisionableMovingObject {
         return [0, 0, 0];
     }
 
+    setStaticPos(x, y, z) {
+        this.pos[0] = this.nextPos[0] = x;
+        this.pos[1] = this.nextPos[1] = y;
+        this.pos[2] = this.nextPos[2] = z;
+    }
+
     update(dTimeSeconds) {
-        if (this.query == undefined) return;
+        if (this.query != undefined) {
 
-        /*let result = this.sdfQueryManager.fetchQuery(this.query);
-        let v = v3Subtract(this.player.pos, this.player.prevPos);
-        let direction = v3Normalize(v);
-        let normal = v3Normalize(result);*/
+            let result = this.game.sdfQueryManager.fetchQuery(this.query);
+            let curVel = v3Subtract(this.nextPos, this.pos);
+            let curDirection = v3Normalize(curVel);
+            let collisionNormal = v3Normalize(result);
+            let collisionPos;
 
-        //Clamp next pos here with
+            if (curDirection != undefined && collisionNormal != undefined) {
+                collisionPos = v3Add(this.pos, v3Scale(curDirection, result[3]));
+            }
 
+            let dirAcc = this.onUpdate(dTimeSeconds, curVel, curDirection, collisionPos, collisionNormal);
 
-        let dirAcc = this.onUpdate(dTimeSeconds, curVel, curDirection, collisionPos, collisionNormal);
+            let nextPos = this.nextPos;
+            this.nextPos = v3Add(v3Subtract(v3Scale(this.nextPos, 2), this.pos), dirAcc);
+            this.pos = nextPos;
+        }
 
-        let nextPos = this.nextPos;
-        this.nextPos = v3Add(v3Subtract(v3Scale(this.nextPos, 2), this.pos), dirAcc);
-        this.pos = nextPos;
-
-        this.query = this.sdfQueryManager.submitQuery(...this.pos, ...this.nextPos);
+        this.query = this.game.sdfQueryManager.submitQuery(...this.pos, ...this.nextPos);
     }
 
 }
 
 
-class Player {
-    constructor() {
-        this.pos = new Float32Array([0, 3.5, 0.0]);
-        this.prevPos = new Float32Array([0, 3.5, 0.0]);
+class Player extends CollisionableMovingObject {
+    constructor(game) {
+        super(game);
+        this.setStaticPos(0, 3.5, 0);
         this.qDir = qIdentity();
         this.dir = [0, 0, -1];
         this.up = [0, 1, 0];
     }
 
-    update(dTimeSeconds) {
+    onUpdate(dTimeSeconds, curVel, curDirection, collisionPos, collisionNormal) {
 
         if (mouseDeltaX != 0) {
             let q = qMultiply(this.qDir, qFromAxisAngle([0, 1, 0], dTimeSeconds * -mouseDeltaX));
@@ -72,52 +82,31 @@ class Player {
         this.dir = v3Normalize(qApplyToV3(this.qDir, [0, 0, -1]));
         this.up = v3Normalize(qApplyToV3(this.qDir, [0, 1, 0]));
 
+        if (collisionPos) {
+            this.pos = collisionPos;
+            this.nextPos = v3Add(this.pos, v3Scale(curVel, -0.8));
+        }
 
-        const mv = dTimeSeconds * 2;
-
-        let side = v3Cross(this.dir, this.up);
-        side = v3Scale(v3Normalize(side), mv);
+        const mv = dTimeSeconds * 4;
+        /*let side = v3Cross(this.dir, this.up);
+        side = v3Scale(v3Normalize(side), mv);*/
         let acc = 0;
 
         if (isKeyDown(KeyCodeUp)) {
-            acc += dTimeSeconds * 4;
+            acc += mv;
         }
         if (isKeyDown(KeyCodeDown)) {
-            acc -= dTimeSeconds;
+            acc -= mv;
         }
 
-        let dirAcc = v3Scale(this.dir, acc * dTimeSeconds);
-
-        let prevPos = new Float32Array(this.pos);
-        v3Add(v3Subtract(v3Scale(this.pos, 2), this.prevPos), dirAcc, this.pos);
-        this.prevPos = prevPos;
-
-        //Speed limit
-        /*
-        let v = v3Subtract(this.pos, this.prevPos);
-        let vLen = v3Length(v);
-        if (vLen > 0.5) {
-            v = v3Scale(v, 0.5 / vLen);
-        }
-        this.pos = v3Add(this.prevPos, v);
-        */
-
-
-        /*
-        if (isKeyDown(KeyCodeLeft)) {
-            this.pos = v3Subtract(this.pos, side, this.pos);
-        }
-        if (isKeyDown(KeyCodeRight)) {
-            this.pos = v3Add(this.pos, side, this.pos);
-        }*/
-
+        return v3Scale(this.dir, acc * dTimeSeconds);
     }
 }
 
 class Ingame {
     constructor() {
         let gl = globalRenderState.gl;
-        this.player = new Player();
+        this.player = new Player(this);
 
         //DELETEME
         //stairs
@@ -147,60 +136,11 @@ class Ingame {
 
         this.sdfQueryManager.fetchQueries(gl);
 
-
-        //Fetch collision results
-
-        if (this.query != undefined) {
-            let result = this.sdfQueryManager.fetchQuery(this.query);
-            let v = v3Subtract(this.player.pos, this.player.prevPos);
-            let direction = v3Normalize(v);
-            let normal = v3Normalize(result);
-
-            const radius = 0.1;
-
-            if (direction != undefined && normal != undefined) {
-                console.log(result, this.player.prevPos, this.player.pos);
-
-
-                v3Add(this.player.prevPos, v3Scale(direction, result[3] * 0.8), this.player.prevPos);
-                let reflection = v3Reflect(v3Subtract(this.player.prevPos, this.player.pos), normal);
-
-
-                v3Add(this.player.prevPos, v3Scale(reflection, 1.25), this.player.pos);
-
-            }
-
-
-            // result = vec4(vec2(n), t, 0.0);
-
-
-            /*
-            let dist = result[3];
-            let normal = v3Normalize(result);
-            console.log(result);
-            const radius = 0.1;
-            if (dist < radius) {
-                let v = v3Subtract(this.player.prevPos, this.player.pos);
-                //let reflection = v3Reflect(v, normal);
-                let reflection = v3Scale(v, -1);
-                let scaledNormal = v3Scale(normal, (dist - radius) * -1.5);
-                console.log("Scaled normal", scaledNormal);
-                v3Add(this.player.prevPos, scaledNormal, this.player.prevPos);
-                this.player.pos = this.player.prevPos;
-                //this.player.pos = v3Add(this.player.prevPos, v3Scale(reflection, 1.2));
-                console.log(dist, normal);
-                console.log(v);
-            }*/
-        }
-
-        ////
-
-        this.currentRoom = this.roomSet.roomFromPoint(this.player.prevPos);
         this.player.update(dTimeSeconds);
+        this.currentRoom = this.roomSet.roomFromPoint(this.player.pos);
 
-        this.query = this.sdfQueryManager.submitQuery(...this.player.prevPos, ...this.player.pos);
 
-        this.viewMatrix = m4LookAt(v3Subtract(this.player.prevPos, this.player.dir), this.player.prevPos, this.player.up);
+        this.viewMatrix = m4LookAt(v3Subtract(this.player.pos, this.player.dir), this.player.pos, this.player.up);
 
         let pAngle = 75 * Math.PI / 180;
         this.projectionMatrix = m4Perspective(pAngle, globalRenderState.screen[0] / globalRenderState.screen[1], 0.05, 20);
@@ -274,8 +214,6 @@ class Ingame {
             renderSet.unshift(currentRoomPair);
         }
 
-
-
         for (let roomPair of renderSet) {
 
             let room = roomPair.room;
@@ -288,7 +226,7 @@ class Ingame {
             gl.uniformMatrix4fv(room.uProjectionMatrix, false, this.projectionMatrix);
             gl.uniformMatrix4fv(room.uClipModelViewMatrix, false, roomPair.clip ? roomPair.clip : m4Identity());
             gl.uniformMatrix4fv(room.uDynamicTransforms, false,
-                m4Invert(m4Multiply(m4Translation(this.player.prevPos), qToM4(this.player.qDir)))
+                m4Invert(m4Multiply(m4Translation(this.player.pos), qToM4(this.player.qDir)))
             );
 
             gl.uniform1f(room.uTimeSeconds, this.timeSeconds);
