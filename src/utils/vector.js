@@ -58,6 +58,12 @@ function v3Reflect(v3a, normal, result = v3Empty()) {
     return v3Subtract(result, v3a, result);
 }
 
+function v3Mix(v3a, v3b, ratio, result = v3Empty()) {
+    result[0] = mix(v3a[0], v3b[0], ratio);
+    result[1] = mix(v3a[1], v3b[1], ratio);
+    result[2] = mix(v3a[2], v3b[2], ratio);
+    return result;
+}
 
 function v2ToStrVec2(v2) {
     return `vec2(${numberToStringWithDecimals(v2[0])},${numberToStringWithDecimals(v2[1])})`;

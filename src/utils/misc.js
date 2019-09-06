@@ -18,3 +18,8 @@ function objectReduce(obj, f, initialValue) {
 function makeChainOfMinsArray(arr) {
     return arr.reduce((acc, cv) => `min(${acc},${cv})`);
 }
+
+
+function mix(a, b, ratio) {
+    return (1 - ratio) * a + ratio * b;
+}

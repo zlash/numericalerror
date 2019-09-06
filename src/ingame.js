@@ -135,6 +135,7 @@ class Ingame {
 
         this.roomSet = new RoomSet(gl, sampleRooms);
         this.sdfQueryManager = new SDFQueryManager(gl, this.roomSet);
+        this.camera = new Camera(this);
         this.timeSeconds = 0.0;
     }
 
@@ -149,7 +150,7 @@ class Ingame {
         this.currentRoom = this.roomSet.roomFromPoint(this.player.pos);
 
 
-        this.viewMatrix = m4LookAt(v3Subtract(this.player.pos, this.player.dir), this.player.pos, this.player.up);
+        this.viewMatrix = this.camera.updateAndGetModelView(dTimeSeconds, this.player.pos, this.player.qDir);// m4LookAt(v3Subtract(this.player.pos, this.player.dir), this.player.pos, this.player.up);
 
         let pAngle = 75 * Math.PI / 180;
         this.projectionMatrix = m4Perspective(pAngle, globalRenderState.screen[0] / globalRenderState.screen[1], 0.05, 20);
