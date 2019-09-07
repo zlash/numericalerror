@@ -65,7 +65,7 @@ function buildRoomSdfBlocks(roomData, rooms, idx) {
 
             let wallM = buildWallMatrix(nextPoint, side, len, portalBottom, portalHeight);
 
-            metadata[i].portalMatrix = m4Multiply(wallM, m4Scale([len * 0.5, portalHeight * 0.5, 1.0]));
+            metadata[i].portalMatrix = m4Multiply(wallM, m4Scale([len * 1.5, portalHeight * 1.5, 1.0]));
         }
 
     }

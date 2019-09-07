@@ -90,15 +90,14 @@ class Player extends CollisionableMovingObject {
             this.nextPos = v3Add(this.pos, v3Scale(curVel, -0.8));
         }
 
-        const mv = dTimeSeconds * 4;
+        const mv = dTimeSeconds * 20;
         /*let side = v3Cross(this.dir, this.up);
         side = v3Scale(v3Normalize(side), mv);*/
         let acc = 0;
 
         if (isKeyDown(KeyCodeUp)) {
             acc += mv;
-        }
-        if (isKeyDown(KeyCodeDown)) {
+        } else if (isKeyDown(KeyCodeDown)) {
             acc -= mv;
         }
 
@@ -110,7 +109,7 @@ class Player extends CollisionableMovingObject {
             this.game.roomSet.dynamicObjects.submitObject(...b);
         }
 
-        return v3Scale(this.dir, acc * dTimeSeconds);
+        return v3Add(v3Scale(this.dir, acc * dTimeSeconds), v3Scale(curVel, -2.0 * dTimeSeconds));
     }
 }
 
@@ -150,12 +149,15 @@ class Ingame {
 
         this.player.update(dTimeSeconds);
 
+        //rotavirus
+        this.roomSet.dynamicObjects.submitObject(0, 2, 0, 2);
+
         let curRoom = this.roomSet.roomFromPoint(this.camera.pos);
         this.currentRoom = curRoom || this.currentRoom;
 
         this.viewMatrix = this.camera.updateAndGetModelView(dTimeSeconds, this.player.pos, this.player.dir, this.player.qDir);// m4LookAt(v3Subtract(this.player.pos, this.player.dir), this.player.pos, this.player.up);
 
-        let pAngle = 120 * Math.PI / 180;
+        let pAngle = 125 * Math.PI / 180;
         this.projectionMatrix = m4Perspective(pAngle, globalRenderState.screen[0] / globalRenderState.screen[1], 0.01, 20);
 
         this.pmv = m4Multiply(this.projectionMatrix, this.viewMatrix);
