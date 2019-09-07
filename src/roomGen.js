@@ -16,17 +16,59 @@ function randBetween(a, b) {
     return a + Math.random() * (b - a);
 }
 
+function randBetweenInt(a, b) {
+    return Math.floor(randBetween(a, b));
+}
+
+function getRandomElement(arr) {
+    return arr[randBetweenInt(0, arr.length)];
+}
+
+
 function initialRoomsGrid(nRooms) {
-    let m = Math.ceil(Math.sqrt(nRooms));
+    let m = Math.ceil(Math.sqrt(nRooms)) + 1;
+    let roomMarkers = Array(m * m).fill(false);
     let rooms = [];
+
+    let genRoomIndex = (x, y) => {
+        if (x >= 0 && y >= 0 && x < m && y < m) {
+            return y * m + x;
+        }
+        return null;
+    };
+
+    let getRoomMarker = (x, y) => {
+        let idx = genRoomIndex(x, y);
+        return idx != null ? roomMarkers[idx] : false;
+    }
+
+    let indexToCoords = idx => {
+        let y = Math.floor(idx / m);
+        return [idx - y * m, y];
+    }
+
+    roomMarkers[randBetweenInt(0, m * m)] = true;
+
+    for (let i = 1; i < nRooms; i++) {
+        let availIndices = roomMarkers.map((x, i) => i).filter(i => {
+            let [x, y] = indexToCoords(i);
+            return !getRoomMarker(x, y) &&
+                (getRoomMarker(x - 1, y) || getRoomMarker(x, y - 1) ||
+                    getRoomMarker(x + 1, y) || getRoomMarker(x, y + 1));
+        });
+        roomMarkers[getRandomElement(availIndices)] = true;
+    }
 
     let avgSide = (minSide + maxSide) * 0.5;
     let avgHeight = maxRoomHeight * 0.5;
     //Create grid of rooms
     for (let y = 0; y < m; y++) {
         for (let x = 0; x < m; x++) {
+            if (!getRoomMarker(x, y)) {
+                continue;
+            }
             let room = {
-                idx: y * m + x,
+                idx: genRoomIndex(x, y),
                 boundWidth: avgSide,
                 boundDepth: avgSide,
                 boundHeight: avgHeight,
@@ -37,8 +79,8 @@ function initialRoomsGrid(nRooms) {
                 let sinTable = [0, -1, 0, 1, 0];
                 let xx = sinTable[i] + x;
                 let yy = sinTable[i + 1] + y;
-                if (xx >= 0 && xx < m && yy >= 0 && yy < m) {
-                    room.doors.push([i, yy * m + xx, 0.5]);
+                if (getRoomMarker(xx, yy)) {
+                    room.doors.push([i, genRoomIndex(xx, yy), 0.5]);
                 }
             }
             rooms.push(room);
@@ -47,32 +89,8 @@ function initialRoomsGrid(nRooms) {
 
     for (let r of rooms) {
         for (let d of r.doors) {
-            d[1] = rooms(d[1]);
+            d[1] = rooms.find(x => x.idx == d[1]);
         }
-    }
-
-    //abusive recursive connectivity test
-    let conTest = (from, to, noVisit) => {
-        if (from == to) {
-            return true;
-        }
-        if (noVisit.includes(from)) {
-            return false;
-        }
-        return from.doors.some(x => conTest(x))
-    };
-
-
-    //Remove superfluous rooms
-    while (rooms.length > nRooms) {
-        let removableRooms = rooms.filter((x) => x.doors.length > 1);
-        console.log([...removableRooms]);
-        let rn = removableRooms[Math.floor(randBetween(0, removableRooms.length))];
-        rooms = rooms.filter(x => x != rn);
-        for (let r of rooms) {
-            r.doors = r.doors.filter(x => x[1] != rn.idx);
-        }
-
     }
 
     console.log(rooms);
