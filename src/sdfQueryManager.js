@@ -16,7 +16,7 @@ class SDFQueryManager {
 
     submitQuery(xa, ya, za, xb, yb, zb) {
         let n = this.nQueries++;
-        let idx = n * 4;
+        let idx = n * 3;
         this.queries[idx] = xa;
         this.queries[idx + 1] = ya;
         this.queries[idx + 2] = za;

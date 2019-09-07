@@ -57,12 +57,12 @@ float tex(vec2 uv)
 
 vec3 lava(vec2 uv)
 {
-    uv*=0.2;
+    uv *= 0.2;
     float value = noise(uv * 5.0);
     float rand = noise(10.0 + uv * 20.0) * 0.5 + 0.5;
     float uValue = value * 3.1415;
     vec2 dir = 2.0 * vec2(cos(uValue), sin(uValue));
-    float t = (uTimeSeconds*0.5 + rand);
+    float t = (uTimeSeconds * 0.5 + rand);
     float ft0 = fract(t);
     float ft1 = fract(t + 0.5);
     vec2 dir0 = dir * 0.1 * ft0;

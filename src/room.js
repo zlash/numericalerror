@@ -74,7 +74,7 @@ function buildRoomSdfBlocks(roomData, rooms, idx) {
     addSdf(`sdfRoomCeil${idx}(pos)`, 0);
     addSdf(`dynamicStuff(pos)`, 2);
 
-    const floorHeight = 0.5;
+    const floorHeight = 0.2;
     let centerPoint = (p) => [p[0] - roomData.center[0], 0, p[2] - roomData.center[2]];
     let auxCode = `
 float sdfRoomShape${idx}(vec3 p) {

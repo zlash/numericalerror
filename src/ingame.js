@@ -32,12 +32,14 @@ class CollisionableMovingObject {
         this.pos[2] = this.nextPos[2] = z;
     }
 
-    update(dTimeSeconds) {
+    update(dTimeSeconds, forceNextPos) {
+        let curVel = v3Subtract(this.nextPos, this.pos);
+        let curDirection = v3Normalize(curVel);
+
         if (this.query != undefined) {
 
             let result = this.game.sdfQueryManager.fetchQuery(this.query);
-            let curVel = v3Subtract(this.nextPos, this.pos);
-            let curDirection = v3Normalize(curVel);
+
             let collisionNormal = v3Normalize(result);
             let collisionPos;
 
@@ -48,11 +50,11 @@ class CollisionableMovingObject {
             let dirAcc = this.onUpdate(dTimeSeconds, curVel, curDirection, collisionPos, collisionNormal);
 
             let nextPos = this.nextPos;
-            this.nextPos = v3Add(v3Subtract(v3Scale(this.nextPos, 2), this.pos), dirAcc);
+            this.nextPos = forceNextPos ? forceNextPos : v3Add(v3Subtract(v3Scale(this.nextPos, 2), this.pos), dirAcc);
             this.pos = nextPos;
         }
 
-        this.query = this.game.sdfQueryManager.submitQuery(...this.pos, ...this.nextPos);
+        this.query = this.game.sdfQueryManager.submitQuery(...this.pos, ...v3Add(this.nextPos, curDirection ? v3Scale(curDirection, this.radius) : [0, 0, 0]));
     }
 
 }
@@ -147,13 +149,14 @@ class Ingame {
         this.sdfQueryManager.fetchQueries(gl);
 
         this.player.update(dTimeSeconds);
-        this.currentRoom = this.roomSet.roomFromPoint(this.player.pos);
 
+        let curRoom = this.roomSet.roomFromPoint(this.camera.pos);
+        this.currentRoom = curRoom || this.currentRoom;
 
-        this.viewMatrix = this.camera.updateAndGetModelView(dTimeSeconds, this.player.pos, this.player.qDir);// m4LookAt(v3Subtract(this.player.pos, this.player.dir), this.player.pos, this.player.up);
+        this.viewMatrix = this.camera.updateAndGetModelView(dTimeSeconds, this.player.pos, this.player.dir, this.player.qDir);// m4LookAt(v3Subtract(this.player.pos, this.player.dir), this.player.pos, this.player.up);
 
-        let pAngle = 75 * Math.PI / 180;
-        this.projectionMatrix = m4Perspective(pAngle, globalRenderState.screen[0] / globalRenderState.screen[1], 0.05, 20);
+        let pAngle = 120 * Math.PI / 180;
+        this.projectionMatrix = m4Perspective(pAngle, globalRenderState.screen[0] / globalRenderState.screen[1], 0.6, 20);
 
         this.pmv = m4Multiply(this.projectionMatrix, this.viewMatrix);
         this.timeSeconds += dTimeSeconds;

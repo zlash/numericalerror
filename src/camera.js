@@ -5,29 +5,25 @@ class Camera extends CollisionableMovingObject {
         this.qDir = qIdentity();
         this.dir = [0, 0, -1];
         this.up = [0, 1, 0];
+
     }
 
-    updateAndGetModelView(dTimeSeconds, playerPos, playerQDir) {
+    updateAndGetModelView(dTimeSeconds, playerPos, playerDir, playerQDir) {
+        const cameraSpeed = 0.25;
+        const cameraDistance = 1.5;
 
-        this.update(dTimeSeconds);
 
         this.qDir = playerQDir;
-        this.dir = v3Normalize(qApplyToV3(this.qDir, [0, 0, -1]));
+        this.dir = v3Normalize(qApplyToV3(this.qDir, [0, -1.5, -1]));
         this.up = v3Normalize(qApplyToV3(this.qDir, [0, 1, 0]));
 
 
-        let cameraPos = v3Subtract(playerPos, this.dir);
-        const cameraSpeed = 0.2;
+        let cameraPos = v3Subtract(playerPos, v3Scale(this.dir, cameraDistance));
+        let nextPos = v3Mix(this.pos, cameraPos, 60 * cameraSpeed * dTimeSeconds);
 
-        this.setStaticPos(...v3Mix(this.nextPos, cameraPos, 60*cameraSpeed*dTimeSeconds));
+        this.update(dTimeSeconds, nextPos);
 
-
-
-        return m4LookAt(this.nextPos, playerPos, this.up);
-    }
-
-    onUpdate(dTimeSeconds, curVel, curDirection, collisionPos, collisionNormal) {
-        return [0, 0, 0];
+        return m4LookAt(this.pos, v3Add(playerPos, v3Scale(playerDir, 5)), this.up);
     }
 
 }
