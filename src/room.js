@@ -136,8 +136,6 @@ class RoomSet {
             roomData.points = roomData.points.map((x) => [x[0], 0, x[1]]);
             roomData.metadata = roomData.points.map(() => { return {}; });
 
-            roomData.idx = this.rooms.length;
-
             let blocks = buildRoomSdfBlocks(roomData, rooms, roomData.idx);
             roomData.blocks = blocks;
             let roomSdf = buildRoomSdf(blocks);
