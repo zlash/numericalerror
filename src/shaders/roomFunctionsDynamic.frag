@@ -1,7 +1,7 @@
 float sdfPlayerShip(vec3 pos)
 {
-    return sdfOpSmoothUnion(sdfBox(pos, vec3(0.1, 0.1, 0.3)),
-        sdfBox(pos - vec3(0.0, 0.0, 0.15), vec3(0.4, 0.05, 0.1)), 0.1);
+    return sdfOpSmoothUnion(sdfBox(pos, vec3(0.05, 0.05, 0.15)),
+        sdfBox(pos - vec3(0.0, 0.0, 0.06), vec3(0.3, 0.05, 0.05)), 0.1);
 }
 
 float dcm(vec3 p, vec3 pos, float model)

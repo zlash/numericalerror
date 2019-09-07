@@ -16,7 +16,7 @@ void main()
         float t = 0.0;
         viewLen = max(0.1, viewLen);
 
-        for (int i = ZERO; i < 128; i++) {
+        for (int i = ZERO; i < 64; i++) {
             float h = worldSdf(posA + view * t);
             if (abs(h) < 0.001 || t > viewLen)
                 break;

@@ -3,7 +3,7 @@ let sampleRooms = [[
     0.0, 5,
 
     [3, -3],
-    [1.5, -3, 1], // Portal
+    [1.5, -3],
     [-1.5, -3],
     [-3, -3],
     [-5, 0],
@@ -118,23 +118,7 @@ class Ingame {
         let gl = globalRenderState.gl;
         this.player = new Player(this);
 
-        //DELETEME
-        //stairs
-        const stairsRooms = 10;
-        for (let i = 0; i < stairsRooms; i++) {
-            let len = 0.5;
-            let lenCur = (i >= stairsRooms - 1) ? 1 : 0.5;
-            let next = (i >= stairsRooms - 1) ? undefined : (sampleRooms.length + 1);
-            sampleRooms.push([
-                0.30 * (i + 1), 8,
-                [1.5, -3 - i * len],
-                [1.5, -3 - (i + 1) * lenCur, next],
-                [-1.5, -3 - (i + 1) * lenCur],
-                [-1.5, -3 - i * len, sampleRooms.length - 1]
-            ]);
-        }
-
-        this.roomSet = new RoomSet(gl, sampleRooms);
+        this.roomSet = new RoomSet(gl, genRooms(5));
         this.sdfQueryManager = new SDFQueryManager(gl, this.roomSet);
         this.camera = new Camera(this);
         this.timeSeconds = 0.0;
@@ -150,14 +134,14 @@ class Ingame {
         this.player.update(dTimeSeconds);
 
         //rotavirus
-        this.roomSet.dynamicObjects.submitObject(0, 2, 0, 2);
+        //this.roomSet.dynamicObjects.submitObject(0, 2, 0, 2);
 
         let curRoom = this.roomSet.roomFromPoint(this.camera.pos);
         this.currentRoom = curRoom || this.currentRoom;
 
         this.viewMatrix = this.camera.updateAndGetModelView(dTimeSeconds, this.player.pos, this.player.dir, this.player.qDir);// m4LookAt(v3Subtract(this.player.pos, this.player.dir), this.player.pos, this.player.up);
 
-        let pAngle = 125 * Math.PI / 180;
+        let pAngle = 90 * Math.PI / 180;
         this.projectionMatrix = m4Perspective(pAngle, globalRenderState.screen[0] / globalRenderState.screen[1], 0.01, 20);
 
         this.pmv = m4Multiply(this.projectionMatrix, this.viewMatrix);
