@@ -156,7 +156,7 @@ class Ingame {
         this.viewMatrix = this.camera.updateAndGetModelView(dTimeSeconds, this.player.pos, this.player.dir, this.player.qDir);// m4LookAt(v3Subtract(this.player.pos, this.player.dir), this.player.pos, this.player.up);
 
         let pAngle = 120 * Math.PI / 180;
-        this.projectionMatrix = m4Perspective(pAngle, globalRenderState.screen[0] / globalRenderState.screen[1], 0.6, 20);
+        this.projectionMatrix = m4Perspective(pAngle, globalRenderState.screen[0] / globalRenderState.screen[1], 0.01, 20);
 
         this.pmv = m4Multiply(this.projectionMatrix, this.viewMatrix);
         this.timeSeconds += dTimeSeconds;
