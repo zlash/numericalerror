@@ -63,7 +63,7 @@ class CollisionableMovingObject {
 class Player extends CollisionableMovingObject {
     constructor(game) {
         super(game);
-        this.setStaticPos(0, 3.5, 0);
+        this.setStaticPos(0, 0, 0);
         this.qDir = qIdentity();
         this.dir = [0, 0, -1];
         this.up = [0, 1, 0];
@@ -122,6 +122,12 @@ class Ingame {
         this.sdfQueryManager = new SDFQueryManager(gl, this.roomSet);
         this.camera = new Camera(this);
         this.timeSeconds = 0.0;
+
+        let initialPos = [...this.roomSet.rooms[0].center];
+        initialPos[1] += 1;
+        this.player.setStaticPos(...initialPos);
+        this.camera.setStaticPos(...this.player.pos);
+
     }
 
     update(dTimeSeconds) {
@@ -141,7 +147,7 @@ class Ingame {
 
         this.viewMatrix = this.camera.updateAndGetModelView(dTimeSeconds, this.player.pos, this.player.dir, this.player.qDir);// m4LookAt(v3Subtract(this.player.pos, this.player.dir), this.player.pos, this.player.up);
 
-        let pAngle = 90 * Math.PI / 180;
+        let pAngle = 100 * Math.PI / 180;
         this.projectionMatrix = m4Perspective(pAngle, globalRenderState.screen[0] / globalRenderState.screen[1], 0.01, 20);
 
         this.pmv = m4Multiply(this.projectionMatrix, this.viewMatrix);
@@ -172,43 +178,46 @@ class Ingame {
             const points = currentRoom.points;
             for (let i = 0; i < points.length; i++) {
                 if (currentRoom.metadata[i].portal != undefined) {
-                    let m = m4Multiply(this.pmv, m4Multiply(currentRoom.metadata[i].portalMatrix, portalsAdjustmentScale));
+                    let m = m4Multiply(this.pmv, currentRoom.metadata[i].portalMatrix);
 
-                    let vertices = [[-1, 1], [-1, -1], [1, -1], [1, 1]].map(x => {
-                        return m4v4Multiply(m, [...x, 0, 1]);
-                    });
-
-                    // Using determinant to check for polygon winding
-                    let d = (vertices[0][0] * vertices[1][1] * vertices[2][3])
-                        + (vertices[1][0] * vertices[2][1] * vertices[0][3])
-                        + (vertices[2][0] * vertices[0][1] * vertices[1][3])
-                        - (vertices[2][0] * vertices[1][1] * vertices[0][3])
-                        - (vertices[1][0] * vertices[0][1] * vertices[2][3])
-                        - (vertices[0][0] * vertices[2][1] * vertices[1][3]);
-
-                    if (d <= 0) {
-                        continue;
+                    /*   let vertices = [[-1, 1], [-1, -1], [1, -1], [1, 1]].map(x => {
+                           return m4v4Multiply(m, [...x, 0, 1]);
+                       });
+   
+                       // Using determinant to check for polygon winding
+                       let d = (vertices[0][0] * vertices[1][1] * vertices[2][3])
+                           + (vertices[1][0] * vertices[2][1] * vertices[0][3])
+                           + (vertices[2][0] * vertices[0][1] * vertices[1][3])
+                           - (vertices[2][0] * vertices[1][1] * vertices[0][3])
+                           - (vertices[1][0] * vertices[0][1] * vertices[2][3])
+                           - (vertices[0][0] * vertices[2][1] * vertices[1][3]);
+   
+                       if (d <= 0) {
+                           continue;
+                       }
+   
+                       //Clip with view volume
+                       let sides = [0, 0, 0];
+                       for (let v of vertices) {
+                           for (let i = 0; i < 3; i++) {
+                               if (v[i] < -v[3]) {
+                                   sides[i]--;
+                               } else if (v[i] > v[3]) {
+                                   sides[i]++;
+                               }
+                           }
+                       }
+   
+                       let vl = vertices.length;
+   
+                       if (Math.abs(sides[0]) == vl) continue;
+                       if (Math.abs(sides[1]) == vl) continue;
+                       if (Math.abs(sides[2]) == vl) continue;
+   */
+                    //punga check until I better culling
+                    if (renderSet.find((x) => x.room == currentRoom.metadata[i].portal) == undefined) {
+                        preRenderSet.push({ room: currentRoom.metadata[i].portal, clip: m4Identity() });
                     }
-
-                    //Clip with view volume
-                    let sides = [0, 0, 0];
-                    for (let v of vertices) {
-                        for (let i = 0; i < 3; i++) {
-                            if (v[i] < -v[3]) {
-                                sides[i]--;
-                            } else if (v[i] > v[3]) {
-                                sides[i]++;
-                            }
-                        }
-                    }
-
-                    let vl = vertices.length;
-
-                    if (Math.abs(sides[0]) == vl) break;
-                    if (Math.abs(sides[1]) == vl) break;
-                    if (Math.abs(sides[2]) == vl) break;
-
-                    preRenderSet.push({ room: this.roomSet.rooms[currentRoom.metadata[i].portal], clip: m });
                 }
             }
 

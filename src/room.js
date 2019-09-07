@@ -46,7 +46,7 @@ function buildRoomSdfBlocks(roomData, rooms, idx) {
         if (metadata[i].portal == undefined) {
             addSdf(buildWall(nextPoint, side, len, roomData.floor, roomHeight), 0);
         } else {
-            let connectingRoom = rooms[metadata[i].portal];
+            let connectingRoom = metadata[i].portal;
             //floor wall
             if (connectingRoom[0] > roomData.floor) {
                 addSdf(buildWall(nextPoint, side, len, roomData.floor, connectingRoom[0] - roomData.floor), 0);
@@ -65,7 +65,7 @@ function buildRoomSdfBlocks(roomData, rooms, idx) {
 
             let wallM = buildWallMatrix(nextPoint, side, len, portalBottom, portalHeight);
 
-            metadata[i].portalMatrix = m4Multiply(wallM, m4Scale([len * 1.5, portalHeight * 1.5, 1.0]));
+            metadata[i].portalMatrix = m4Multiply(wallM, m4Scale([len, portalHeight, 1.0]));
         }
 
     }
@@ -133,8 +133,9 @@ class RoomSet {
         this.rooms = [];
 
         for (let roomData of rooms) {
+            roomData.metadata = roomData.points.map((x) => { return { portal: x[2] }; });
             roomData.points = roomData.points.map((x) => [x[0], 0, x[1]]);
-            roomData.metadata = roomData.points.map(() => { return {}; });
+
 
             let blocks = buildRoomSdfBlocks(roomData, rooms, roomData.idx);
             roomData.blocks = blocks;

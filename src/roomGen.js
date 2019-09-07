@@ -6,9 +6,9 @@ const doorWidth = 3;
 const doorHeight = 4;
 const areaRatio = 2.5;
 const minSide = doorWidth + 1;
-const maxSide = 40;
-const minAisleLen = 3;
-const maxAisleLen = 15;
+const maxSide = 6;//40;
+const minAisleLen = 0;
+const maxAisleLen = 0;
 const minRoomHeight = doorHeight + 1;
 const maxRoomHeight = 15;
 
@@ -127,18 +127,20 @@ function generateGenericRoom() {
 
 
 function genRooms(nRooms) {
-    /* 
- 
-     let rooms = [generateGenericRoom()];
-     for (let i = 0; i < nRooms; i++) {
-         let newRoom = generateGenericRoom();
- 
-         let availDoors = rooms.map(r => r.doors.map(d => { return { room: r, door: d }; })).flat();
- 
-         let tryDoor = availDoors[Math.floor(randBetween(0, availDoors.length))];
- 
- 
-         rooms.push(newRoom);
-     }*/
-    return initialRoomsGrid(nRooms);
+    let rooms = initialRoomsGrid(nRooms);
+
+    for (let r of rooms) {
+        r.floor = r.center[1];
+        r.ceiling = r.center[1] + r.boundHeight;
+        r.points = [[0.5, -0.5], [-0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]]
+            .map(x => [x[0] * r.boundWidth + r.center[0], x[1] * r.boundDepth + r.center[2]]);
+
+        for (let d of r.doors) {
+            r.points[d[0]].push(d[1]);
+        }
+    }
+
+
+
+    return rooms;
 }
