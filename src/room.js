@@ -132,20 +132,10 @@ class RoomSet {
         this.dynamicObjects = new DynamicRoomObjects(gl);
         this.rooms = [];
 
-        for (let room of rooms) {
-            let roomData = {};
+        for (let roomData of rooms) {
+            roomData.points = roomData.points.map((x) => [x[0], 0, x[1]]);
+            roomData.metadata = roomData.points.map(() => { return {}; });
 
-            roomData.floor = room[0]
-            roomData.ceiling = room[1];
-            roomData.points = [];
-            roomData.metadata = [];
-
-            for (let i = 2; i < room.length; i++) {
-                roomData.points.push([room[i][0], 0, room[i][1]]);
-                roomData.metadata.push({ portal: room[i][2] });
-            }
-
-            roomData.center = roomData.points.reduce((acc, cur) => v3Add(acc, v3Scale(cur, 1 / roomData.points.length)), [0, 0, 0]);
             roomData.idx = this.rooms.length;
 
             let blocks = buildRoomSdfBlocks(roomData, rooms, roomData.idx);
@@ -163,9 +153,9 @@ class RoomSet {
             roomData.uScreenSize = getUniformLocation(gl, roomData.shader, 'uScreenSize');
             roomData.uTimeSeconds = getUniformLocation(gl, roomData.shader, 'uTimeSeconds');
 
-            let uboDO=this.dynamicObjects.ubo;
+            let uboDO = this.dynamicObjects.ubo;
             let uboDOIndex = gl.getUniformBlockIndex(roomData.shader, 'DO');
-            bindUniformBufferWithIndex(gl,uboDO, 0);
+            bindUniformBufferWithIndex(gl, uboDO, 0);
             gl.uniformBlockBinding(roomData.shader, uboDOIndex, 0);
 
             this.rooms.push(roomData);

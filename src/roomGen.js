@@ -22,20 +22,25 @@ function randBetween(a, b) {
 function generateGenericRoom() {
     const areaRatio = 2.5;
     const minSide = 4;
-    const maxSide = 30;
+    const maxSide = 40;
     let height = randBetween(5, 15);
 
     let width = randBetween(minSide, maxSide);
     let depth = randBetween(Math.max(minSide, width / areaRatio), Math.min(maxSide, width * areaRatio));
 
-    let points = [0, height];
+    let points = [];
 
     points.push([-width * 0.5, -depth * 0.5]);
     points.push([-width * 0.5, depth * 0.5]);
     points.push([width * 0.5, depth * 0.5]);
     points.push([width * 0.5, -depth * 0.5]);
 
-    return points;
+    return {
+        floor: 0,
+        ceiling: height,
+        points: points,
+        center: [0, 0]
+    };
 
 }
 
