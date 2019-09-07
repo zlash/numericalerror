@@ -9,7 +9,23 @@ float dcm(vec3 p, vec3 pos, float model)
     if (model < 1.5) {
         return length(p - pos) - 0.1;
     } else if (model < 2.5) {
-        return length(p - pos) - 0.5;
+
+        //Rotavirus
+        float d = length(p - pos) - 0.15;
+        const int N = 25;
+        for (int i = 0; i < N; i++) {
+
+            vec2 fLatt = vec2(float(i) / float(N), 2.0 * float(i) / (1.0 + sqrt(5.0)));
+            vec2 cil = vec2(acos(2.0 * fLatt.x - 1.0) - (3.1415 / 2.0), 2.0 * 3.1415 * fLatt.y);
+            vec3 dir = normalize(vec3(cos(cil.x) * cos(cil.y), cos(cil.x) * sin(cil.y), sin(cil.x)));
+            vec3 offset = dir * (0.2 + 0.08 * sin(uTimeSeconds * 3.0 + float(i) * 3.1415));
+            float nd = length(p - pos - offset) - 0.025;
+
+            const float k = 0.18;
+            float h = clamp(0.5 + 0.5 * (nd - d) / k, 0.0, 1.0);
+            d = mix(nd, d, h) - k * h * (1.0 - h);
+        }
+        return d;
     }
     return length(p - pos) - 1.0;
 }
