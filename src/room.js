@@ -138,12 +138,13 @@ class RoomSet {
 
 
             let blocks = buildRoomSdfBlocks(roomData, rooms, roomData.idx);
+            console.log(`Built SDF for room: ${roomData.idx}`);
             roomData.blocks = blocks;
             let roomSdf = buildRoomSdf(blocks);
             let fs = buildRoomFS(roomSdf);
 
             roomData.shader = createProgram(gl, prependPrecisionAndVersion(roomVS), fs);
-
+            console.log(`Created shader for room: ${roomData.idx}`);
             roomData.aVertexPosition = gl.getAttribLocation(roomData.shader, 'aVertexPosition');
             roomData.uProjectionMatrix = getUniformLocation(gl, roomData.shader, 'uProjectionMatrix');
             roomData.uModelViewMatrix = getUniformLocation(gl, roomData.shader, 'uModelViewMatrix');

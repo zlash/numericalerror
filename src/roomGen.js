@@ -6,9 +6,9 @@ const doorWidth = 3;
 const doorHeight = 4;
 const areaRatio = 2.5;
 const minSide = doorWidth + 1;
-const maxSide = 6;//40;
-const minAisleLen = 0;
-const maxAisleLen = 0;
+const maxSide = 30;
+const minAisleLen = 3;
+const maxAisleLen = 15;
 const minRoomHeight = doorHeight + 1;
 const maxRoomHeight = 15;
 
@@ -60,7 +60,9 @@ function initialRoomsGrid(nRooms) {
     }
 
     let avgSide = (minSide + maxSide) * 0.5;
+    let avgAisle = (minAisleLen + maxAisleLen) * 0.5;
     let avgHeight = maxRoomHeight * 0.5;
+
     //Create grid of rooms
     for (let y = 0; y < m; y++) {
         for (let x = 0; x < m; x++) {
@@ -72,7 +74,7 @@ function initialRoomsGrid(nRooms) {
                 boundWidth: avgSide,
                 boundDepth: avgSide,
                 boundHeight: avgHeight,
-                center: [x * (avgSide + minAisleLen), 0, y * (avgSide + minAisleLen)],
+                center: [x * (avgSide + avgAisle), 0, y * (avgSide + avgAisle)],
                 doors: [] //side (0 top, CCW), targetRoom, normalizedPos
             };
             for (let i = 0; i < 4; i++) {
@@ -88,59 +90,57 @@ function initialRoomsGrid(nRooms) {
     }
 
     for (let r of rooms) {
-        for (let d of r.doors) {
-            d[1] = rooms.find(x => x.idx == d[1]);
-        }
-    }
-
-    console.log(rooms);
-    return rooms;
-}
-
-/*
-function generateGenericRoom() {
-
-    let height = randBetween(5, 15);
-
-    let width = randBetween(minSide, maxSide);
-    let depth = randBetween(Math.max(minSide, width / areaRatio), Math.min(maxSide, width * areaRatio));
-
-    let points = [];
-
-    points.push([-width * 0.5, -depth * 0.5]);
-    points.push([-width * 0.5, depth * 0.5]);
-    points.push([width * 0.5, depth * 0.5]);
-    points.push([width * 0.5, -depth * 0.5]);
-
-    return {
-        floor: 0,
-        ceiling: height,
-        points: points,
-        boundWidth: width,
-        boundDepth: depth,
-        boundHeight: height,
-        center: [0, 0, 0],
-        doors: [0, 1, 2, 3]// top, right
-    };
-
-}*/
-
-
-function genRooms(nRooms) {
-    let rooms = initialRoomsGrid(nRooms);
-
-    for (let r of rooms) {
         r.floor = r.center[1];
         r.ceiling = r.center[1] + r.boundHeight;
         r.points = [[0.5, -0.5], [-0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]]
             .map(x => [x[0] * r.boundWidth + r.center[0], x[1] * r.boundDepth + r.center[2]]);
 
+        let doorOpenings = Array(4).fill(null);
         for (let d of r.doors) {
-            r.points[d[0]].push(d[1]);
+            //Push the opening in the correspondent slot
+            let pA = r.points[d[0]];
+            let pB = r.points[(d[0] + 1) % 4];
+
+            let side = v2Subtract(pB, pA);
+            let sideLen = v2Length(side);
+            let halfDoorFraction = 0.5 * doorWidth / sideLen;
+
+            doorOpenings[d[0]] = [[...v2Add(pA, v2Scale(side, d[2] - halfDoorFraction)), rooms.find(x => x.idx == d[1])],
+            [...v2Add(pA, v2Scale(side, d[2] + halfDoorFraction))]];
+
+
+            //d[1] = rooms.find(x => x.idx == d[1]);
+        }
+        console.log(doorOpenings);
+
+    }
+
+    return rooms;
+}
+
+
+function genRooms(nRooms) {
+    let rooms = initialRoomsGrid(nRooms);
+
+
+    //Generate aisle rooms
+    // aisle points closestA farestB closestB farestA
+    for (let r of rooms) {
+        for (let d of r.doors) {
+            let otherRoom = d[1];
+            if (r.idx < otherRoom.idx) {
+                let room = {
+                    boundHeight: doorHeight,
+                    idx: `${r.idx}:${otherRoom.idx}`,
+                };
+
+            }
         }
     }
 
 
+
+    console.log(rooms);
 
     return rooms;
 }

@@ -6,6 +6,10 @@ function v3Empty() {
     return [0, 0, 0];
 }
 
+function v2Empty() {
+    return [0, 0];
+}
+
 function v3Add(v3a, v3b, result = v3Empty()) {
     result[0] = v3a[0] + v3b[0];
     result[1] = v3a[1] + v3b[1];
@@ -71,4 +75,26 @@ function v2ToStrVec2(v2) {
 
 function v3xzToStrVec2(v3) {
     return `vec2(${numberToStringWithDecimals(v3[0])},${numberToStringWithDecimals(v3[2])})`;
+}
+
+function v2Add(v2a, v2b, result = v2Empty()) {
+    result[0] = v2a[0] + v2b[0];
+    result[1] = v2a[1] + v2b[1];
+    return result;
+}
+
+function v2Subtract(v2a, v2b, result = v2Empty()) {
+    result[0] = v2a[0] - v2b[0];
+    result[1] = v2a[1] - v2b[1];
+    return result;
+}
+
+function v2Scale(v2a, scale, result = v2Empty()) {
+    result[0] = v2a[0] * scale;
+    result[1] = v2a[1] * scale;
+    return result;
+}
+
+function v2Length(v2) {
+    return Math.hypot(v2[0], v2[1]);
 }

@@ -4,6 +4,7 @@ const QueriesEntries = 2;
 class SDFQueryManager {
     constructor(gl, roomSet) {
         this.shader = createProgram(gl, prependPrecisionAndVersion(screenQuadVS), roomSet.generateCollisionsShader());
+        console.log("Created collisions shader");
         this.fbo = createFBOWithTextureAttachment(gl, MaxQueries, 1, gl.RGBA32F, gl.RGBA, gl.FLOAT);
         this.aVertexPosition = gl.getAttribLocation(this.shader, "aVertexPosition");
         this.uScreenSize = getUniformLocation(gl, this.shader, "uScreenSize");
