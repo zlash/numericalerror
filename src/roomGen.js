@@ -12,21 +12,8 @@ const maxAisleLen = 15;
 const minRoomHeight = doorHeight + 1;
 const maxRoomHeight = 15;
 
-function randBetween(a, b) {
-    return a + Math.random() * (b - a);
-}
-
-function randBetweenInt(a, b) {
-    return Math.floor(randBetween(a, b));
-}
-
-function getRandomElement(arr) {
-    return arr[randBetweenInt(0, arr.length)];
-}
-
-
 function initialRoomsGrid(nRooms) {
-    let m = Math.ceil(Math.sqrt(nRooms)) + 1;
+    let m = Math.ceil(Math.sqrt(nRooms));
     let roomMarkers = Array(m * m).fill(false);
     let rooms = [];
 
@@ -107,12 +94,9 @@ function initialRoomsGrid(nRooms) {
 
             doorOpenings[d[0]] = [[...v2Add(pA, v2Scale(side, d[2] - halfDoorFraction)), rooms.find(x => x.idx == d[1])],
             [...v2Add(pA, v2Scale(side, d[2] + halfDoorFraction))]];
-
-
-            //d[1] = rooms.find(x => x.idx == d[1]);
         }
-        console.log(doorOpenings);
 
+        r.points = [].concat(...r.points.map((x, i) => [x, ...(doorOpenings[i] ? doorOpenings[i] : [])]));
     }
 
     return rooms;

@@ -23,3 +23,15 @@ function makeChainOfMinsArray(arr) {
 function mix(a, b, ratio) {
     return (1 - ratio) * a + ratio * b;
 }
+
+function randBetween(a, b) {
+    return a + Math.random() * (b - a);
+}
+
+function randBetweenInt(a, b) {
+    return Math.floor(randBetween(a, b));
+}
+
+function getRandomElement(arr) {
+    return arr[randBetweenInt(0, arr.length)];
+}
