@@ -23,7 +23,7 @@ function buildWall(corner, side, len, floor, roomHeight) {
     return `sdfWall(vec3(${m4ToStrMat4(m4Invert(m))}*vec4(pos,1.0)), ${v2ToStrVec2([len * 0.5, roomHeight * 0.5])} )`;
 }
 
-function buildRoomSdfBlocks(roomData, rooms, idx) {
+function buildRoomSdfBlocks(roomData, idx) {
 
     //I must return room segregated by materials 
 
@@ -48,19 +48,19 @@ function buildRoomSdfBlocks(roomData, rooms, idx) {
         } else {
             let connectingRoom = metadata[i].portal;
             //floor wall
-            if (connectingRoom[0] > roomData.floor) {
-                addSdf(buildWall(nextPoint, side, len, roomData.floor, connectingRoom[0] - roomData.floor), 0);
+            if (connectingRoom.floor > roomData.floor) {
+                addSdf(buildWall(nextPoint, side, len, roomData.floor, connectingRoom.floor - roomData.floor), 0);
             }
 
             //ceil wall
-            if (roomData.ceiling > connectingRoom[1]) {
-                let ch = roomData.ceiling - connectingRoom[1];
+            if (roomData.ceiling > connectingRoom.ceiling) {
+                let ch = roomData.ceiling - connectingRoom.ceiling;
                 addSdf(buildWall(nextPoint, side, len, roomData.ceiling - ch, ch), 0);
             }
 
             //Portal! 
-            let portalTop = Math.min(roomData.ceiling, connectingRoom[1]);
-            let portalBottom = Math.max(roomData.floor, connectingRoom[0]);
+            let portalTop = Math.min(roomData.ceiling, connectingRoom.ceiling);
+            let portalBottom = Math.max(roomData.floor, connectingRoom.floor);
             let portalHeight = portalTop - portalBottom;
 
             let wallM = buildWallMatrix(nextPoint, side, len, portalBottom, portalHeight);
@@ -137,7 +137,7 @@ class RoomSet {
             roomData.points = roomData.points.map((x) => [x[0], 0, x[1]]);
 
 
-            let blocks = buildRoomSdfBlocks(roomData, rooms, roomData.idx);
+            let blocks = buildRoomSdfBlocks(roomData, roomData.idx);
             console.log(`Built SDF for room: ${roomData.idx}`);
             roomData.blocks = blocks;
             let roomSdf = buildRoomSdf(blocks);
