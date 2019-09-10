@@ -210,7 +210,7 @@ for input_file in "$@"; do
 			
 			leanify $(if_echo "${keep_meta}" '--keep-exif') --iteration ${iterations} --max_depth 1 "${input_file}"
 			
-			#ECT -zip $(if_echo "${keep_meta}" '' '-strip') -9 "${input_file}" && replace_if_smaller "${input_file}.zip" "${input_file}"
+			ect -zip $(if_echo "${keep_meta}" '' '-strip') -9 "${input_file}" && replace_if_smaller "${input_file}.zip" "${input_file}"
 			
 			advzip --recompress --shrink-insane --iter=${iterations} -- "${input_file}"
 			

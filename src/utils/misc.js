@@ -35,3 +35,7 @@ function randBetweenInt(a, b) {
 function getRandomElement(arr) {
     return arr[randBetweenInt(0, arr.length)];
 }
+
+function getWrapedElement(arr, idx) {
+    return arr[idx % arr.length];
+}
