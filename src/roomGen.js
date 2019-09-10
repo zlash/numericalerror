@@ -13,7 +13,7 @@ const minRoomHeight = doorHeight + 1;
 const maxRoomHeight = 15;
 
 function initialRoomsGrid(nRooms) {
-    let m = Math.ceil(Math.sqrt(nRooms));
+    let m = Math.ceil(Math.sqrt(nRooms)) + 1;
     let roomMarkers = Array(m * m).fill(false);
     let rooms = [];
 
@@ -48,7 +48,10 @@ function initialRoomsGrid(nRooms) {
 
     let avgSide = (minSide + maxSide) * 0.5;
     let avgAisle = (minAisleLen + maxAisleLen) * 0.5;
-    let avgHeight = maxRoomHeight * 0.5;
+    let avgHeight = (maxRoomHeight + minRoomHeight) * 0.5;
+
+    let width = normalRand(minSide, maxSide);
+    let depth = normalRand(Math.max(minSide, width / areaRatio), Math.min(maxSide, width * areaRatio));
 
     //Create grid of rooms
     for (let y = 0; y < m; y++) {
@@ -58,9 +61,9 @@ function initialRoomsGrid(nRooms) {
             }
             let room = {
                 idx: genRoomIndex(x, y),
-                boundWidth: avgSide,
-                boundDepth: avgSide,
-                boundHeight: avgHeight,
+                boundWidth: width,
+                boundDepth: depth,
+                boundHeight: normalRand(minRoomHeight, maxRoomHeight),
                 center: [x * (avgSide + avgAisle), 0, y * (avgSide + avgAisle)],
                 doors: [] //side (0 top, CCW), targetRoom, normalizedPos
             };

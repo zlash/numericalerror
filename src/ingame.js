@@ -118,7 +118,7 @@ class Ingame {
         let gl = globalRenderState.gl;
         this.player = new Player(this);
 
-        this.roomSet = new RoomSet(gl, genRooms(4));
+        this.roomSet = new RoomSet(gl, genRooms(5));
         this.sdfQueryManager = new SDFQueryManager(gl, this.roomSet);
         this.camera = new Camera(this);
         this.timeSeconds = 0.0;

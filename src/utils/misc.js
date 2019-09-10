@@ -39,3 +39,11 @@ function getRandomElement(arr) {
 function getWrapedElement(arr, idx) {
     return arr[idx % arr.length];
 }
+
+function normalRand(min, max, mean) {
+    const bound = 3;
+    mean = mean == null ? ((min + max) * 0.5) : mean;
+    let sample = Math.sqrt(-2 * Math.log(Math.random())) * Math.cos(2 * Math.PI * Math.random());
+    sample = Math.min(bound, Math.max(-bound, sample));
+    return sample < 0 ? (mean + (mean - min) * sample / bound) : ((max - mean) * sample / bound + mean);
+}
