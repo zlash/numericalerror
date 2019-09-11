@@ -53,9 +53,9 @@ float sdfWall(vec3 pos, vec2 dim)
 {
     float d = sdfPlane(pos, vec3(0.0, 0.0, 1.0));
 
-    float bricksD = min(sdfBrickRow(pos),
-        sdfBrickRow(pos - vec3(brickSize.x, brickSize.y * 2.0, 0.0)));
+    //float bricksD = min(sdfBrickRow(pos),
+    //    sdfBrickRow(pos - vec3(brickSize.x, brickSize.y * 2.0, 0.0)));
 
-    return sdfOpIntersection(min(d, bricksD), sdfBox(pos, vec3(dim, brickSize.z * 2.0)));
-    //return sdfOpIntersection(d, sdfBox(pos, vec3(dim, 1.0)));
+    //return sdfOpIntersection(min(d, bricksD), sdfBox(pos, vec3(dim, brickSize.z * 2.0)));
+    return sdfOpIntersection(d, sdfBox(pos, vec3(dim, 1.0)));
 }

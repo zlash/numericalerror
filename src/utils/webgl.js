@@ -5,43 +5,52 @@ if (DEBUG) {
     }
 }
 
-function loadShader(gl, type, source) {
-    const shader = gl.createShader(type);
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
+function loadShaderAsync(gl, type, source) {
+    return promisify(() => {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
 
-    if (DEBUG) {
-        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-            alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
-            console.log(`FAILED SHADER: (TYPE ${glReverseEnumLookUp(type)})`);
-            console.log("============================================");
-            console.log(source);
-            gl.deleteShader(shader);
-            return null;
+        if (DEBUG) {
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
+                console.log(`FAILED SHADER: (TYPE ${glReverseEnumLookUp(type)})`);
+                console.log("============================================");
+                console.log(source);
+                gl.deleteShader(shader);
+                return null;
+            }
         }
-    }
 
-    return shader;
+        return shader;
+    });
 }
 
-function createProgram(gl, vsSource, fsSource) {
-    const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
-    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+function createProgramWithShadersAsync(gl, shaders) {
+    return promisify(() => {
+        const shaderProgram = gl.createProgram();
+        shaders.forEach(x => gl.attachShader(shaderProgram, x));
+        gl.linkProgram(shaderProgram);
 
-    const shaderProgram = gl.createProgram();
-    gl.attachShader(shaderProgram, vertexShader);
-    gl.attachShader(shaderProgram, fragmentShader);
-    gl.linkProgram(shaderProgram);
-
-    if (DEBUG) {
-        if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-            alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
-            return null;
+        if (DEBUG) {
+            if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+                alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
+                return null;
+            }
         }
-    }
 
-    return shaderProgram;
+        shaders.forEach(x => gl.deleteShader(x));
+        return shaderProgram;
+    });
 }
+
+async function createProgramAsync(gl, vsSource, fsSource) {
+    const vertexShader = await loadShaderAsync(gl, gl.VERTEX_SHADER, vsSource);
+    const fragmentShader = await loadShaderAsync(gl, gl.FRAGMENT_SHADER, fsSource);
+
+    return createProgramWithShadersAsync(gl, [vertexShader, fragmentShader]);
+}
+
 
 function getUniformLocation(gl, shader, name) {
     return gl.getUniformLocation(shader, name);

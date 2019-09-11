@@ -128,38 +128,42 @@ vec3 calcNormal(vec3 p){vec3 n=vec3(.0);for(int i=ZERO;i<4;i++){vec3 e=0.5773*(2
 }
 
 class RoomSet {
-    constructor(gl, rooms) {
+
+    async init(gl, rooms) {
         this.dynamicObjects = new DynamicRoomObjects(gl);
         this.rooms = [];
 
         for (let roomData of rooms) {
-            roomData.metadata = roomData.points.map((x) => { return { portal: x[2] }; });
-            roomData.points = roomData.points.map((x) => [x[0], 0, x[1]]);
+            this.rooms.push((async () => {
+                roomData.metadata = roomData.points.map((x) => { return { portal: x[2] }; });
+                roomData.points = roomData.points.map((x) => [x[0], 0, x[1]]);
 
+                let blocks = buildRoomSdfBlocks(roomData, roomData.idx);
+                console.log(`Built SDF for room: ${roomData.idx}`);
+                roomData.blocks = blocks;
+                let roomSdf = buildRoomSdf(blocks);
+                let fs = buildRoomFS(roomSdf);
 
-            let blocks = buildRoomSdfBlocks(roomData, roomData.idx);
-            console.log(`Built SDF for room: ${roomData.idx}`);
-            roomData.blocks = blocks;
-            let roomSdf = buildRoomSdf(blocks);
-            let fs = buildRoomFS(roomSdf);
+                roomData.shader = await createProgramAsync(gl, prependPrecisionAndVersion(roomVS), fs);
+                console.log(`Created shader for room: ${roomData.idx}`);
+                roomData.aVertexPosition = gl.getAttribLocation(roomData.shader, 'aVertexPosition');
+                roomData.uProjectionMatrix = getUniformLocation(gl, roomData.shader, 'uProjectionMatrix');
+                roomData.uModelViewMatrix = getUniformLocation(gl, roomData.shader, 'uModelViewMatrix');
+                roomData.uClipModelViewMatrix = getUniformLocation(gl, roomData.shader, 'uClipModelViewMatrix');
+                roomData.uDynamicTransforms = getUniformLocation(gl, roomData.shader, 'uDynamicTransforms');
+                roomData.uScreenSize = getUniformLocation(gl, roomData.shader, 'uScreenSize');
+                roomData.uTimeSeconds = getUniformLocation(gl, roomData.shader, 'uTimeSeconds');
 
-            roomData.shader = createProgram(gl, prependPrecisionAndVersion(roomVS), fs);
-            console.log(`Created shader for room: ${roomData.idx}`);
-            roomData.aVertexPosition = gl.getAttribLocation(roomData.shader, 'aVertexPosition');
-            roomData.uProjectionMatrix = getUniformLocation(gl, roomData.shader, 'uProjectionMatrix');
-            roomData.uModelViewMatrix = getUniformLocation(gl, roomData.shader, 'uModelViewMatrix');
-            roomData.uClipModelViewMatrix = getUniformLocation(gl, roomData.shader, 'uClipModelViewMatrix');
-            roomData.uDynamicTransforms = getUniformLocation(gl, roomData.shader, 'uDynamicTransforms');
-            roomData.uScreenSize = getUniformLocation(gl, roomData.shader, 'uScreenSize');
-            roomData.uTimeSeconds = getUniformLocation(gl, roomData.shader, 'uTimeSeconds');
+                let uboDO = this.dynamicObjects.ubo;
+                let uboDOIndex = gl.getUniformBlockIndex(roomData.shader, 'DO');
+                bindUniformBufferWithIndex(gl, uboDO, 0);
+                gl.uniformBlockBinding(roomData.shader, uboDOIndex, 0);
 
-            let uboDO = this.dynamicObjects.ubo;
-            let uboDOIndex = gl.getUniformBlockIndex(roomData.shader, 'DO');
-            bindUniformBufferWithIndex(gl, uboDO, 0);
-            gl.uniformBlockBinding(roomData.shader, uboDOIndex, 0);
-
-            this.rooms.push(roomData);
+                return roomData;
+            })());
         }
+
+        this.rooms = await Promise.all(this.rooms);
     }
 
     generateCollisionsShader() {

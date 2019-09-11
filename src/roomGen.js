@@ -71,8 +71,13 @@ function initialRoomsGrid(nRooms) {
                 let sinTable = [0, -1, 0, 1, 0];
                 let xx = sinTable[i] + x;
                 let yy = sinTable[i + 1] + y;
+
+                let sideLen = [room.boundDepth, room.boundWidth, room.boundDepth, room.boundWidth][i];
+                let doorMargin = (1 + doorWidth) * 0.5;
+                let doorPos = normalRand(doorMargin, sideLen - doorMargin);
+                doorPos = 0.5*sideLen;
                 if (getRoomMarker(xx, yy)) {
-                    room.doors.push([i, genRoomIndex(xx, yy), 0.5]);
+                    room.doors.push([i, genRoomIndex(xx, yy), doorPos / sideLen]);
                 }
             }
             rooms.push(room);
@@ -128,8 +133,54 @@ function fillRoomMissingStuff(room) {
     return room;
 }
 
+function sepRoom(roomA, roomB, coord, delta) {
+    const coord2 = coord * 2;
+    const sign = roomA.center[coord2] < roomB.center[coord2] ? -1 : 1;
+    delta *= sign;
+    roomA.center[coord2] += delta;
+    for (let p of roomA.points) {
+        p[coord] += delta;
+    }
+}
+
+function separateOnCoord(roomA, roomB, coord) {
+    let dist = Math.abs(roomA.center[coord * 2] - roomB.center[coord * 2]);
+    let radSum = ([roomA.boundWidth, roomA.boundDepth][coord] + [roomB.boundWidth, roomB.boundDepth][coord]) * 0.5;
+    let sep = radSum - dist;
+    if (sep > 0) {
+        sepRoom(roomA, roomB, coord, sep * 0.6);
+        sepRoom(roomB, roomA, coord, sep * 0.6);
+        return true;
+    }
+    return false;
+}
+
+function solveConstraints(rooms) {
+    let noFixesNeeded = true;
+    for (let i = 0; i < rooms.length; i++) {
+        let roomA = rooms[i];
+        for (let j = i + 1; j < rooms.length; j++) {
+            let roomB = rooms[j];
+            noFixesNeeded = noFixesNeeded || separateOnCoord(roomA, roomB, 0);
+            noFixesNeeded = noFixesNeeded || separateOnCoord(roomA, roomB, 1);
+
+
+            //find matching portals, get angle, and if its over my limit, move the rooms
+        }
+    }
+
+    return noFixesNeeded;
+}
+
 function genRooms(nRooms) {
     let rooms = initialRoomsGrid(nRooms);
+
+    //Coooooonstraiiiints
+    for (let i = 0; i < 500; i++) {
+        if (solveConstraints(rooms)) {
+            break;
+        }
+    }
 
     //Generate aisle rooms
     // aisle points closestA farestB closestB farestA

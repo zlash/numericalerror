@@ -2,8 +2,8 @@ const MaxQueries = 1024;
 const QueriesEntries = 2;
 
 class SDFQueryManager {
-    constructor(gl, roomSet) {
-        this.shader = createProgram(gl, prependPrecisionAndVersion(screenQuadVS), roomSet.generateCollisionsShader());
+    async init(gl, roomSet) {
+        this.shader = await createProgramAsync(gl, prependPrecisionAndVersion(screenQuadVS), roomSet.generateCollisionsShader());
         console.log("Created collisions shader");
         this.fbo = createFBOWithTextureAttachment(gl, MaxQueries, 1, gl.RGBA32F, gl.RGBA, gl.FLOAT);
         this.aVertexPosition = gl.getAttribLocation(this.shader, "aVertexPosition");
@@ -14,6 +14,7 @@ class SDFQueryManager {
         this.uploadTexture = createTexture2d(gl, MaxQueries, QueriesEntries, gl.RGB32F, gl.RGB, gl.FLOAT);
         this.nQueries = 0;
     }
+
 
     submitQuery(xa, ya, za, xb, yb, zb) {
         let n = this.nQueries++;

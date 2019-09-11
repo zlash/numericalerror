@@ -47,3 +47,10 @@ function normalRand(min, max, mean) {
     sample = Math.min(bound, Math.max(-bound, sample));
     return sample < 0 ? (mean + (mean - min) * sample / bound) : ((max - mean) * sample / bound + mean);
 }
+
+
+function promisify(callback) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => resolve(callback()), 0);
+    });
+}

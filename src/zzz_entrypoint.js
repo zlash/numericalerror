@@ -87,9 +87,11 @@ function init() {
 
     ingame = new Ingame();
 
-    setupInputEventListeners();
-    canvas.addEventListener('click', () => requestCanvasPointerLock(), false);
-    requestAnimationFrame(render);
+    ingame.init().then(() => {
+        setupInputEventListeners();
+        canvas.addEventListener('click', () => requestCanvasPointerLock(), false);
+        requestAnimationFrame(render);
+    });
 }
 
 window.onload = init;
