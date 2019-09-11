@@ -3,7 +3,7 @@
 SRC_DIR="$1"
 DIST_DIR="$2"
 
-JS_FILES=$(find "$SRC_DIR" -name '*.js')
+JS_FILES=$(find "$SRC_DIR" -name '*.js' | sort)
 
 TERSER_OPTIONS="--mangle --ecma 6 --toplevel --warn --mangle-props reserved=[movementX,movementY,RGBA32F,RGBA16F,RGB32F,texStorage2D,TEXTURE_BASE_LEVEL,TEXTURE_MAX_LEVEL,UNIFORM_BUFFER,getUniformBlockIndex,uniformBlockBinding,bindBufferBase]"
 
