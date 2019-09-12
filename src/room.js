@@ -153,6 +153,8 @@ class RoomSet {
                 roomData.uDynamicTransforms = getUniformLocation(gl, roomData.shader, 'uDynamicTransforms');
                 roomData.uScreenSize = getUniformLocation(gl, roomData.shader, 'uScreenSize');
                 roomData.uTimeSeconds = getUniformLocation(gl, roomData.shader, 'uTimeSeconds');
+                roomData.uArraySampler = getUniformLocation(gl, roomData.shader, 'uArraySampler');
+                
 
                 let uboDO = this.dynamicObjects.ubo;
                 let uboDOIndex = gl.getUniformBlockIndex(roomData.shader, 'DO');

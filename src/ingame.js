@@ -72,10 +72,13 @@ class Ingame {
         this.player = new Player(this);
 
         this.roomSet = new RoomSet();
-        await this.roomSet.init(gl, genRooms(5));
+        await this.roomSet.init(gl, genRooms(3));
 
         this.sdfQueryManager = new SDFQueryManager();
-        await this.sdfQueryManager.init(gl, this.roomSet);
+        let qmInit = this.sdfQueryManager.init(gl, this.roomSet);
+
+        this.texturesArray = texturesArray(gl, 1024);
+        console.log("Created textures array.");
 
         this.camera = new Camera(this);
         this.timeSeconds = 0.0;
@@ -84,6 +87,8 @@ class Ingame {
         initialPos[1] += 1;
         this.player.setStaticPos(...initialPos);
         this.camera.setStaticPos(...this.player.pos);
+
+        await qmInit;
     }
 
     update(dTimeSeconds) {
@@ -198,6 +203,9 @@ class Ingame {
             gl.uniform1f(room.uTimeSeconds, this.timeSeconds);
 
             gl.uniform2iv(room.uScreenSize, globalRenderState.screen);
+
+            gl.bindTexture(gl.TEXTURE_2D, this.texturesArray);
+            gl.uniform1i(room.uArraySampler, 0);
 
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         }

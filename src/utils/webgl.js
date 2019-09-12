@@ -74,10 +74,10 @@ function updateUniformBuffer(gl, ubo, data) {
     gl.bufferSubData(gl.UNIFORM_BUFFER, 0, data);
 }
 
-function createTexture2d(gl, width, height, internalFormat, baseFormat, dataFormat) {
+function createTexture2d(gl, width, height, internalFormat, baseFormat, dataFormat, data) {
     let tex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, tex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, width, height, 0, baseFormat, dataFormat, undefined);
+    gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, width, height, 0, baseFormat, dataFormat, data);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     return tex;

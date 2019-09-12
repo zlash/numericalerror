@@ -1,4 +1,5 @@
-
+uniform sampler2D uArraySampler;
+/*
 float shadow(vec3 ro, vec3 rd, float mint, float tmax)
 {
     float res = 1.0;
@@ -16,6 +17,7 @@ float shadow(vec3 ro, vec3 rd, float mint, float tmax)
     }
     return step(0.01, res);
 }
+*/
 
 vec2 hash(vec2 x) // replace this by something better
 {
@@ -79,7 +81,15 @@ vec3 lava(vec2 uv)
 vec3 shade(vec3 pos, vec3 normal, float mat)
 {
     if (mat < 0.5) { // Wall
-        return vec3(0.6);
+        vec2 uv = pos.xy;
+        vec3 crossA = cross(normal, vec3(0.0, 0.0, 1.0));
+        if (length(crossA) > 0.0001) {
+            crossA = normalize(crossA);
+            vec3 crossB = normalize(cross(normal, crossA));
+            uv = (transpose(mat3(crossA, crossB, normal)) * pos).xy;
+        }
+
+        return texture(uArraySampler, uv).rgb;
     } else if (mat < 1.5) { // Floor
         /*vec2 q = floor(pos.xz);
         return vec3(mod(q.x + q.y, 2.));*/
