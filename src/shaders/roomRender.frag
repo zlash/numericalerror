@@ -89,7 +89,7 @@ vec3 shade(vec3 pos, vec3 normal, float mat)
             uv = (transpose(mat3(crossA, crossB, normal)) * pos).xy;
         }
 
-        return texture(uArraySampler, uv).rgb;
+        return tex(uv / 32.0) * texture(uArraySampler, uv / 8.0).rgb;
     } else if (mat < 1.5) { // Floor
         /*vec2 q = floor(pos.xz);
         return vec3(mod(q.x + q.y, 2.));*/
