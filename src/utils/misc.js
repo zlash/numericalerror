@@ -54,3 +54,15 @@ function promisify(callback) {
         setTimeout(() => resolve(callback()), 0);
     });
 }
+
+function arrayUnique(arr, cb) {
+    if (arr.length == 0) return arr;
+
+    let result = [];
+    while (arr.length > 0) {
+        let next = arr.shift();
+        result.push(next);
+        arr = arr.filter(x => !cb(next, x));
+    }
+    return result;
+}

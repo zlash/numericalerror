@@ -72,7 +72,7 @@ class Ingame {
         this.player = new Player(this);
 
         this.roomSet = new RoomSet();
-        await this.roomSet.init(gl, genRooms(3));
+        await this.roomSet.init(gl, genRooms(2));
 
         this.sdfQueryManager = new SDFQueryManager();
         let qmInit = this.sdfQueryManager.init(gl, this.roomSet);

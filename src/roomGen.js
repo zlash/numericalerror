@@ -8,13 +8,18 @@ const areaRatio = 2.5;
 const minSide = doorWidth + 1;
 const maxSide = 30;
 const minAisleLen = 3;
-const maxAisleLen = 15;
+const maxAisleLen = 20;
 const minRoomHeight = doorHeight + 1;
-const maxRoomHeight = 15;
+const maxRoomHeight = 10;
 
-function initialRoomsGrid(nRooms) {
-    let m = Math.ceil(Math.sqrt(nRooms)) + 1;
-    let roomMarkers = Array(m * m).fill(false);
+let RoomTypes = {
+    empty: 0,
+    normal: 1,
+    lavaRoom: 2
+};
+
+function initialRoomsGrid(gridSize) {
+    let m = Math.max(3, gridSize);
     let rooms = [];
 
     let genRoomIndex = (x, y) => {
@@ -24,26 +29,122 @@ function initialRoomsGrid(nRooms) {
         return null;
     };
 
-    let getRoomMarker = (x, y) => {
-        let idx = genRoomIndex(x, y);
-        return idx != null ? roomMarkers[idx] : false;
-    }
-
     let indexToCoords = idx => {
         let y = Math.floor(idx / m);
         return [idx - y * m, y];
     }
 
-    roomMarkers[randBetweenInt(0, m * m)] = true;
+    let rotateAndCopyTile = (tile, rotation) => {
+        if (rotation == 0) {
+            return [...tile];
+        }
+        let ops = tile[1];
+        return rotateAndCopyTile([tile[0], [ops[3], ops[0], ops[1], ops[2]]], rotation - 1);
+    }
 
-    for (let i = 1; i < nRooms; i++) {
-        let availIndices = roomMarkers.map((x, i) => i).filter(i => {
-            let [x, y] = indexToCoords(i);
-            return !getRoomMarker(x, y) &&
-                (getRoomMarker(x - 1, y) || getRoomMarker(x, y - 1) ||
-                    getRoomMarker(x + 1, y) || getRoomMarker(x, y + 1));
-        });
-        roomMarkers[getRandomElement(availIndices)] = true;
+    //0: oblig wall, 1: oblig door, 2: door/wall
+    let roomTiles = [[RoomTypes.empty, [0, 0, 0, 0]], [RoomTypes.normal, [2, 2, 2, 2]], [RoomTypes.lavaRoom, [1, 0, 1, 0]]];
+    let tilesEq = (a, b) => a[0] == b[0] && a[1].every((x, i) => x == b[1][i]);
+    let roomsWFC = Array(m * m).fill(0).map(x => {
+        let tiles = [];
+        for (let t of roomTiles) {
+            for (let i = 0; i < 4; i++) {
+                tiles.push(rotateAndCopyTile(t, i));
+            }
+        }
+        return arrayUnique(tiles, tilesEq);
+    });
+
+    let coordOffsetsFromRotation = i => {
+        const coords = [0, 1, 0, -1];
+        return [coords[i], coords[(i + 3) % 4]];
+    }
+
+    let oppositeDirection = i => [2, 3, 0, 1][i];
+
+    let sidesAreCompatible = (ai, bi) => {
+        let [a, b] = ai < bi ? [ai, bi] : [bi, ai];
+        return (a == 0 && (b == 0 || b == 2))
+            || (a == 1 && (b == 1 || b == 2))
+            || a == 2;
+    };
+
+    let roomConected = (x, y, i) => {
+        let curSide = roomsWFC[genRoomIndex(x, y)][0][1][i];
+
+        if (curSide == 0) return false;
+        if (curSide == 1) return true;
+
+        let [ox, oy] = coordOffsetsFromRotation(i);
+        let opIdx = genRoomIndex(x + ox, y + oy);
+        if (opIdx == null) {
+            return false;
+        }
+
+        let opSideTiles = roomsWFC[opIdx];
+
+        if (opSideTiles.length == 0) {
+            return false;
+        }
+
+        return opSideTiles[0][1][oppositeDirection(i)] != 0;
+    };
+
+    let enforceConstraints = (x, y) => {
+        let curIdx = genRoomIndex(x, y);
+        if (curIdx == null) return;
+        let curCell = roomsWFC[curIdx];
+
+        for (let i = 0; i < 4; i++) {
+            let [xi, yi] = coordOffsetsFromRotation(i);
+            xi += x;
+            yi += y;
+            let idx = genRoomIndex(xi, yi);
+
+            curCell = curCell.filter(x => {
+                let curSide = x[1][i];
+                let survives = false;
+                if (idx == null || roomsWFC[idx].length == 0) {
+                    survives = curSide != 1;
+                } else {
+                    roomsWFC[idx].forEach(againstTile => {
+                        let opSide = oppositeDirection(i);
+                        survives = survives || sidesAreCompatible(curSide, againstTile[1][opSide]);
+                    });
+                }
+
+                return survives;
+            });
+        }
+        if (curCell.length < roomsWFC[curIdx].length) {
+            modifyCellAndEnforceConstraints(x, y, curCell);
+        }
+    };
+
+    let modifyCellAndEnforceConstraints = (x, y, val) => {
+        roomsWFC[genRoomIndex(x, y)] = val;
+        enforceConstraints(x + 1, y);
+        enforceConstraints(x - 1, y);
+        enforceConstraints(x, y + 1);
+        enforceConstraints(x, y - 1);
+    }
+
+
+    modifyCellAndEnforceConstraints(Math.floor(m / 2), Math.floor(m / 2), [rotateAndCopyTile(roomTiles[2], 0), rotateAndCopyTile(roomTiles[2], 1)])
+
+    while (true) {
+        //Pick tiles with lowest wfc count
+        let minCount = roomsWFC.filter(x => x.length > 1).reduce((accum, a) => a.length < accum ? a.length : accum, 9999);
+        if (minCount == 9999) {
+            break;
+        }
+
+        //Collapse + enforce constraints
+        let availTiles = roomsWFC.map((x, i) => i).filter(i => roomsWFC[i].length > 1 && roomsWFC[i].length == minCount);
+
+        let nextIdx = getRandomElement(availTiles);
+        let [x, y] = indexToCoords(nextIdx);
+        modifyCellAndEnforceConstraints(x, y, [getRandomElement(roomsWFC[nextIdx])])
     }
 
     let avgSide = (minSide + maxSide) * 0.5;
@@ -56,27 +157,40 @@ function initialRoomsGrid(nRooms) {
     //Create grid of rooms
     for (let y = 0; y < m; y++) {
         for (let x = 0; x < m; x++) {
-            if (!getRoomMarker(x, y)) {
+            let curRoomTiles = roomsWFC[genRoomIndex(x, y)];
+            if (curRoomTiles.length == 0) {
                 continue;
             }
+
+            let curRoom = curRoomTiles[0];
+
+            if (curRoom[0] == RoomTypes.empty) { //empty room
+                continue;
+            }
+
+            let floorOffset = 0;
+            if (curRoom[0] == RoomTypes.lavaRoom) { //special Lava room
+                floorOffset = 20;
+            }
+
             let room = {
                 idx: genRoomIndex(x, y),
                 boundWidth: width,
                 boundDepth: depth,
-                boundHeight: normalRand(minRoomHeight, maxRoomHeight),
-                center: [x * (avgSide + avgAisle), 0, y * (avgSide + avgAisle)],
+                boundHeight: normalRand(minRoomHeight, maxRoomHeight) + floorOffset,
+                center: [x * (avgSide + avgAisle), -floorOffset, y * (avgSide + avgAisle)],
                 doors: [] //side (0 top, CCW), targetRoom, normalizedPos
             };
             for (let i = 0; i < 4; i++) {
-                let sinTable = [0, -1, 0, 1, 0];
-                let xx = sinTable[i] + x;
-                let yy = sinTable[i + 1] + y;
+                let [xx, yy] = coordOffsetsFromRotation(i);
+                xx += x;
+                yy += y;
 
                 let sideLen = [room.boundDepth, room.boundWidth, room.boundDepth, room.boundWidth][i];
                 let doorMargin = (1 + doorWidth) * 0.5;
                 let doorPos = normalRand(doorMargin, sideLen - doorMargin);
-                doorPos = 0.5*sideLen;
-                if (getRoomMarker(xx, yy)) {
+                doorPos = 0.5 * sideLen;
+                if (roomConected(x, y, i)) {
                     room.doors.push([i, genRoomIndex(xx, yy), doorPos / sideLen]);
                 }
             }
@@ -91,16 +205,20 @@ function initialRoomsGrid(nRooms) {
             .map(x => [x[0] * r.boundWidth + r.center[0], x[1] * r.boundDepth + r.center[2]]);
 
         let doorOpenings = Array(4).fill(null);
+
+        let mapDirToPoint = i => [0, 3, 2, 1][i];
+
         for (let d of r.doors) {
             //Push the opening in the correspondent slot
-            let pA = r.points[d[0]];
-            let pB = r.points[(d[0] + 1) % 4];
+            let pointIdx = mapDirToPoint(d[0]);
+            let pA = r.points[pointIdx];
+            let pB = r.points[(pointIdx + 1) % 4];
 
             let side = v2Subtract(pB, pA);
             let sideLen = v2Length(side);
             let halfDoorFraction = 0.5 * doorWidth / sideLen;
 
-            doorOpenings[d[0]] = [[...v2Add(pA, v2Scale(side, d[2] - halfDoorFraction)), rooms.find(x => x.idx == d[1])],
+            doorOpenings[pointIdx] = [[...v2Add(pA, v2Scale(side, d[2] - halfDoorFraction)), rooms.find(x => x.idx == d[1])],
             [...v2Add(pA, v2Scale(side, d[2] + halfDoorFraction))]];
         }
 
