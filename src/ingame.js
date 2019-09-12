@@ -104,6 +104,11 @@ class Ingame {
         //this.roomSet.dynamicObjects.submitObject(0, 2, 0, 2);
 
         let curRoom = this.roomSet.roomFromPoint(this.camera.pos);
+        if (DEBUG) {
+            if (curRoom && curRoom != this.currentRoom) {
+                console.log("Current room:", curRoom.idx);
+            }
+        }
         this.currentRoom = curRoom || this.currentRoom;
 
         this.viewMatrix = this.camera.updateAndGetModelView(dTimeSeconds, this.player.pos, this.player.dir, this.player.qDir);// m4LookAt(v3Subtract(this.player.pos, this.player.dir), this.player.pos, this.player.up);

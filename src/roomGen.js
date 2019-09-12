@@ -7,8 +7,8 @@ const doorHeight = 4;
 const areaRatio = 2.5;
 const minSide = doorWidth + 1;
 const maxSide = 30;
-const minAisleLen = 3;
-const maxAisleLen = 20;
+const minAisleLen = 8;
+const maxAisleLen = 40;
 const minRoomHeight = doorHeight + 1;
 const maxRoomHeight = 10;
 
@@ -16,7 +16,9 @@ let RoomTypes = {
     empty: 0,
     normal: 1,
     lavaRoom: 2,
-    gearsRoom: 3
+    gearsRoom: 3,
+    initialRoom: 4,
+    bossRoom: 5
 };
 
 function initialRoomsGrid(gridSize) {
@@ -44,7 +46,7 @@ function initialRoomsGrid(gridSize) {
     }
 
     //0: oblig wall, 1: oblig door, 2: door/wall
-    let roomTiles = [[RoomTypes.empty, [0, 0, 0, 0]], [RoomTypes.normal, [2, 2, 2, 2]], [RoomTypes.lavaRoom, [1, 0, 1, 0]], [RoomTypes.gearsRoom, [1, 0, 1, 0]]];
+    let roomTiles = [[RoomTypes.empty, [0, 0, 0, 0]], [RoomTypes.normal, [1, 2, 1, 2]], [RoomTypes.normal, [1, 1, 2, 2]], [RoomTypes.lavaRoom, [1, 0, 1, 0]], [RoomTypes.gearsRoom, [1, 0, 1, 0]]];
     let tilesEq = (a, b) => a[0] == b[0] && a[1].every((x, i) => x == b[1][i]);
     let roomsWFC = Array(m * m).fill(0).map(x => {
         let tiles = [];
@@ -130,8 +132,8 @@ function initialRoomsGrid(gridSize) {
         enforceConstraints(x, y - 1);
     }
 
-
-    modifyCellAndEnforceConstraints(Math.floor(m / 2), Math.floor(m / 2), [rotateAndCopyTile(roomTiles[3], 0), rotateAndCopyTile(roomTiles[3], 1)])
+    modifyCellAndEnforceConstraints(0, 0, [[RoomTypes.initialRoom, [0, 0, 1, 0]]]);
+    modifyCellAndEnforceConstraints(m - 1, m - 1, [[RoomTypes.bossRoom, [1, 0, 0, 0]]]);
 
     while (true) {
         //Pick tiles with lowest wfc count
@@ -183,6 +185,14 @@ function initialRoomsGrid(gridSize) {
                 depth = 30;
                 width = doorHeight - floor * 2;
             }
+
+            if (curRoom[0] == RoomTypes.bossRoom) {
+                floor = -50;
+                height -= floor;
+                depth = 25;
+                width = 25;
+            }
+
 
             let room = {
                 idx: genRoomIndex(x, y),
@@ -263,43 +273,67 @@ function fillRoomMissingStuff(room) {
     return room;
 }
 
-function sepRoom(roomA, roomB, coord, delta) {
+function sepRoom(rooms, roomA, roomB, coord, delta) {
     const coord2 = coord * 2;
-    const sign = roomA.center[coord2] < roomB.center[coord2] ? -1 : 1;
+    const sign = Math.sign(roomA.center[coord2] - roomB.center[coord2]);
     delta *= sign;
-    roomA.center[coord2] += delta;
-    for (let p of roomA.points) {
-        p[coord] += delta;
-    }
+
+    const middle = (roomA.center[coord2] + roomB.center[coord2]) * 0.5;
+    //Stiff joints. All rooms that lie to the side of the middle of the
+    //selected coord are moved
+
+    rooms.forEach(x => {
+        //If not in siff set, break;
+        if (x.center[coord2] < middle * sign) {
+            return;
+        }
+
+        x.center[coord2] += delta;
+        for (let p of x.points) {
+            p[coord] += delta;
+        }
+    });
+}
+function overlapOnCoord(roomA, roomB, coord) {
+    let dist = Math.abs(roomA.center[coord * 2] - roomB.center[coord * 2]);
+    let radSum = ([roomA.boundWidth, roomA.boundDepth][coord] + [roomB.boundWidth, roomB.boundDepth][coord]) * 0.5 + minAisleLen;
+    return radSum - dist;
 }
 
-function separateOnCoord(roomA, roomB, coord) {
-    let dist = Math.abs(roomA.center[coord * 2] - roomB.center[coord * 2]);
-    let radSum = ([roomA.boundWidth, roomA.boundDepth][coord] + [roomB.boundWidth, roomB.boundDepth][coord]) * 0.5;
-    let sep = (radSum + minAisleLen) - dist;
+function separateOnCoord(rooms, roomA, roomB, coord) {
+    let sep = overlapOnCoord(roomA, roomB, coord);
     if (sep > 0) {
-        sepRoom(roomA, roomB, coord, sep * 0.5);
-        sepRoom(roomB, roomA, coord, sep * 0.5);
+        sepRoom(rooms, roomA, roomB, coord, sep * 0.5);
+        sepRoom(rooms, roomB, roomA, coord, sep * 0.5);
         return true;
     }
     return false;
 }
 
 function solveConstraints(rooms) {
-    let noFixesNeeded = true;
+    let fixesNeeded = false;
     for (let i = 0; i < rooms.length; i++) {
         let roomA = rooms[i];
         for (let j = i + 1; j < rooms.length; j++) {
             let roomB = rooms[j];
-            noFixesNeeded = noFixesNeeded || separateOnCoord(roomA, roomB, 0);
-            noFixesNeeded = noFixesNeeded || separateOnCoord(roomA, roomB, 1);
 
+            let overlaps = [overlapOnCoord(roomA, roomB, 0), overlapOnCoord(roomA, roomB, 1)];
 
-            //find matching portals, get angle, and if its over my limit, move the rooms
+            if (overlaps[0] > 0 && overlaps[1] > 0) {
+                if (overlaps[0] < overlaps[1]) {
+                    fixesNeeded = fixesNeeded || separateOnCoord(rooms, roomA, roomB, 0);
+                } else {
+                    fixesNeeded = fixesNeeded || separateOnCoord(rooms, roomA, roomB, 1);
+                }
+            } else if (overlaps[0] > 0) {
+                fixesNeeded = fixesNeeded || separateOnCoord(rooms, roomA, roomB, 0);
+            } else if (overlaps[1] > 0) {
+                fixesNeeded = fixesNeeded || separateOnCoord(rooms, roomA, roomB, 1);
+            }
         }
     }
 
-    return noFixesNeeded;
+    return fixesNeeded;
 }
 
 function genRooms(nRooms) {
@@ -307,7 +341,7 @@ function genRooms(nRooms) {
 
     //Coooooonstraiiiints
     for (let i = 0; i < 500; i++) {
-        if (solveConstraints(rooms)) {
+        if (!solveConstraints(rooms)) {
             break;
         }
     }
