@@ -70,6 +70,10 @@ function buildRoomSdfBlocks(roomData, idx) {
 
     }
 
+    if (roomData.roomType == RoomTypes.gearsRoom) {
+        addSdf(`sdfGearsSet(vec3(${m4ToStrMat4(m4Invert(m4Translation(roomData.center)))}*vec4(pos,1.0)))`, 1);
+    }
+
     addSdf(`sdfRoomFloor${idx}(pos)`, 1);
     addSdf(`sdfRoomCeil${idx}(pos)`, 0);
     addSdf(`dynamicStuff(pos)`, 2);
@@ -154,7 +158,7 @@ class RoomSet {
                 roomData.uScreenSize = getUniformLocation(gl, roomData.shader, 'uScreenSize');
                 roomData.uTimeSeconds = getUniformLocation(gl, roomData.shader, 'uTimeSeconds');
                 roomData.uArraySampler = getUniformLocation(gl, roomData.shader, 'uArraySampler');
-                
+
 
                 let uboDO = this.dynamicObjects.ubo;
                 let uboDOIndex = gl.getUniformBlockIndex(roomData.shader, 'DO');

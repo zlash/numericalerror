@@ -15,7 +15,8 @@ const maxRoomHeight = 10;
 let RoomTypes = {
     empty: 0,
     normal: 1,
-    lavaRoom: 2
+    lavaRoom: 2,
+    gearsRoom: 3
 };
 
 function initialRoomsGrid(gridSize) {
@@ -43,7 +44,7 @@ function initialRoomsGrid(gridSize) {
     }
 
     //0: oblig wall, 1: oblig door, 2: door/wall
-    let roomTiles = [[RoomTypes.empty, [0, 0, 0, 0]], [RoomTypes.normal, [2, 2, 2, 2]], [RoomTypes.lavaRoom, [1, 0, 1, 0]]];
+    let roomTiles = [[RoomTypes.empty, [0, 0, 0, 0]], [RoomTypes.normal, [2, 2, 2, 2]], [RoomTypes.lavaRoom, [1, 0, 1, 0]], [RoomTypes.gearsRoom, [1, 0, 1, 0]]];
     let tilesEq = (a, b) => a[0] == b[0] && a[1].every((x, i) => x == b[1][i]);
     let roomsWFC = Array(m * m).fill(0).map(x => {
         let tiles = [];
@@ -130,7 +131,7 @@ function initialRoomsGrid(gridSize) {
     }
 
 
-    modifyCellAndEnforceConstraints(Math.floor(m / 2), Math.floor(m / 2), [rotateAndCopyTile(roomTiles[2], 0), rotateAndCopyTile(roomTiles[2], 1)])
+    modifyCellAndEnforceConstraints(Math.floor(m / 2), Math.floor(m / 2), [rotateAndCopyTile(roomTiles[3], 0), rotateAndCopyTile(roomTiles[3], 1)])
 
     while (true) {
         //Pick tiles with lowest wfc count
@@ -151,12 +152,15 @@ function initialRoomsGrid(gridSize) {
     let avgAisle = (minAisleLen + maxAisleLen) * 0.5;
     let avgHeight = (maxRoomHeight + minRoomHeight) * 0.5;
 
-    let width = normalRand(minSide, maxSide);
-    let depth = normalRand(Math.max(minSide, width / areaRatio), Math.min(maxSide, width * areaRatio));
-
     //Create grid of rooms
     for (let y = 0; y < m; y++) {
         for (let x = 0; x < m; x++) {
+
+            let floor = 0;
+            let height = normalRand(minRoomHeight, maxRoomHeight);
+            let width = normalRand(minSide, maxSide);
+            let depth = normalRand(Math.max(minSide, width / areaRatio), Math.min(maxSide, width * areaRatio));
+
             let curRoomTiles = roomsWFC[genRoomIndex(x, y)];
             if (curRoomTiles.length == 0) {
                 continue;
@@ -168,18 +172,26 @@ function initialRoomsGrid(gridSize) {
                 continue;
             }
 
-            let floorOffset = 0;
             if (curRoom[0] == RoomTypes.lavaRoom) { //special Lava room
-                floorOffset = 20;
+                floor = -30;
+                height -= floor;
+            }
+
+            if (curRoom[0] == RoomTypes.gearsRoom) { // gears room
+                floor = -5;
+                height = doorHeight - floor * 2;
+                depth = 30;
+                width = doorHeight - floor * 2;
             }
 
             let room = {
                 idx: genRoomIndex(x, y),
                 boundWidth: width,
                 boundDepth: depth,
-                boundHeight: normalRand(minRoomHeight, maxRoomHeight) + floorOffset,
-                center: [x * (avgSide + avgAisle), -floorOffset, y * (avgSide + avgAisle)],
-                doors: [] //side (0 top, CCW), targetRoom, normalizedPos
+                boundHeight: height,
+                center: [x * (avgSide + avgAisle), floor, y * (avgSide + avgAisle)],
+                doors: [], //side (0 top, CCW), targetRoom, normalizedPos
+                roomType: curRoom[0]
             };
             for (let i = 0; i < 4; i++) {
                 let [xx, yy] = coordOffsetsFromRotation(i);
@@ -264,10 +276,10 @@ function sepRoom(roomA, roomB, coord, delta) {
 function separateOnCoord(roomA, roomB, coord) {
     let dist = Math.abs(roomA.center[coord * 2] - roomB.center[coord * 2]);
     let radSum = ([roomA.boundWidth, roomA.boundDepth][coord] + [roomB.boundWidth, roomB.boundDepth][coord]) * 0.5;
-    let sep = radSum - dist;
+    let sep = (radSum + minAisleLen) - dist;
     if (sep > 0) {
-        sepRoom(roomA, roomB, coord, sep * 0.6);
-        sepRoom(roomB, roomA, coord, sep * 0.6);
+        sepRoom(roomA, roomB, coord, sep * 0.5);
+        sepRoom(roomB, roomA, coord, sep * 0.5);
         return true;
     }
     return false;

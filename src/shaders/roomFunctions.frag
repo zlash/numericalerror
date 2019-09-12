@@ -59,3 +59,8 @@ float sdfWall(vec3 pos, vec2 dim)
     //return sdfOpIntersection(min(d, bricksD), sdfBox(pos, vec3(dim, brickSize.z * 2.0)));
     return sdfOpIntersection(d, sdfBox(pos, vec3(dim, 1.0)));
 }
+
+float sdfGearsSet(vec3 pos)
+{
+    return sdfBox(pos, vec3(2.0));
+}
