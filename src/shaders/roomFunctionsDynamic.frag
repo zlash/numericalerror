@@ -4,10 +4,16 @@ float sdfPlayerShip(vec3 pos)
         sdfBox(pos - vec3(0.0, 0.0, 0.06), vec3(0.3, 0.05, 0.05)), 0.1);
 }
 
+float sdOctahedron(in vec3 p, in float s)
+{
+    p = abs(p);
+    return (p.x + p.y + p.z - s) * 0.57735027;
+}
+
 float dcm(vec3 p, vec3 pos, float model)
 {
     if (model < 1.5) {
-        return length(p - pos) - 0.1;
+        return sdOctahedron(p - pos, 0.4);
     } else if (model < 2.5) {
 
         //Rotavirus

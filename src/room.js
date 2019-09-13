@@ -75,11 +75,11 @@ function buildRoomSdfBlocks(roomData, idx) {
     }
 
     if (roomData.roomType == RoomTypes.lavaRoom) {
-        addSdf(`sdfLavaSafe((${m4ToStrMat4(m4Invert(m4Translation(roomData.center)))}*pos4).xyz)`, 1);
+        addSdf(`sdfLavaSafe((${m4ToStrMat4(m4Invert(m4Translation([roomData.center[0], roomData.floor + 1, roomData.center[2]])))}*pos4).xyz)`, 0);
     }
 
     if (roomData.roomType == RoomTypes.bossRoom) {
-        addSdf(`sdfBarsDoor((${m4ToStrMat4(m4Invert(m4Translation([roomData.center[0], doorHeight * 0.5, roomData.center[2] - roomData.boundDepth * 0.5 + 0.1])))}*pos4).xyz,${v3ToStrVec3([doorWidth * 1.5, doorHeight * 0.35, 0.1])})`, 1);
+        addSdf(`sdfBarsDoor((${m4ToStrMat4(m4Invert(m4Translation([roomData.center[0], doorHeight * 0.5, roomData.center[2] - roomData.boundDepth * 0.5 + 0.1])))}*pos4).xyz,${v3ToStrVec3([doorWidth * 1.5, doorHeight * 0.35, 0.1])})`, 0);
 
         addSdf(`sdBoss((${m4ToStrMat4(m4Invert(m4Translation([roomData.center[0], roomData.floor + 2, roomData.center[2]])))}*pos4).xyz)`, 1);
 
@@ -176,6 +176,10 @@ class RoomSet {
                     this.lavaRoom = roomData;
                 }
 
+                if (roomData.roomType == RoomTypes.bossRoom) {
+                    this.bossRoom = roomData;
+                }
+
                 roomData.shader = await createProgramAsync(gl, prependPrecisionAndVersion(roomVS), fs);
                 console.log(`Created shader for room: ${roomData.idx}`);
 
@@ -187,6 +191,7 @@ class RoomSet {
         }
 
         this.rooms = await Promise.all(this.rooms);
+        console.log(this.rooms);
 
         for (let roomData of rooms) {
             roomData.aVertexPosition = gl.getAttribLocation(roomData.shader, 'aVertexPosition');

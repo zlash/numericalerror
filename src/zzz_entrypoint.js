@@ -25,6 +25,7 @@ let prevTSeconds = 0;
 let lastTenFrames = [];
 let ingame;
 
+
 function render(tSeconds) {
     let gl = globalRenderState.gl;
     tSeconds *= 0.001;  // convert to seconds
@@ -59,10 +60,10 @@ function render(tSeconds) {
 
     updateMouseDeltas();
 
-    ingame.update(dTimeSeconds);
-    ingame.render();
+    if (ingame) ingame.update(dTimeSeconds);
+    if (ingame) ingame.render();
+    if (ingame) requestAnimationFrame(render);
 
-    requestAnimationFrame(render);
 }
 
 function resizeViewport() {
@@ -90,11 +91,32 @@ function getExtension(gl, extension) {
 
 
 function triggerGameOver() {
+    ingame = null;
     const div = document.createElement("div");
     div.id = "G";
     div.innerHTML = `<br><br><br><br><h1>GAME OVER!</h1><h2>Play again?</h2><h3>(Begins instantly as the shaders are already built!)</h3><br><button>PLAY</button>`;
     document.querySelector("#G").replaceWith(div);
-    document.querySelector("button").addEventListener("click", () => alert("Pay again"));
+    document.querySelector("button").addEventListener("click", () => newGame());
+}
+
+function endGame() {
+    ingame = null;
+    const div = document.createElement("div");
+    div.id = "G";
+    div.innerHTML = `<br><br><br><br><h1>YOU WON!</h1> You reached the parasite room with the mirror item that was hidden in the lava room.<br> The idea was that the parasite would attack you as soon as you entered so you needed the mirror to bounce back it's shots.<br> Thanks for making it this far in ths hackish demo!`;
+    document.querySelector("#G").replaceWith(div);
+}
+
+function newGame() {
+    qualityRatio = 2;
+    ingame = new Ingame();
+
+    ingame.init(globalRenderState.roomSet, globalRenderState.sdfQueryManager).then(() => {
+        document.querySelector("#G").replaceWith(globalRenderState.gl.canvas);
+        setupInputEventListeners();
+        globalRenderState.gl.canvas.addEventListener('click', () => requestCanvasPointerLock(), false);
+        requestAnimationFrame(render);
+    });
 }
 
 function init() {
@@ -110,7 +132,6 @@ function init() {
     resizeViewport();
 
 
-
     if (DEBUG) {
         globalRenderState.fpsCounterElement = document.createElement("div");
         document.body.appendChild(globalRenderState.fpsCounterElement);
@@ -119,14 +140,16 @@ function init() {
     gl.clearColor(0.0, 1.0, 0.0, 1.0);
     createQuad(gl);
 
-    ingame = new Ingame();
 
-    ingame.init().then(() => {
-        document.querySelector("#G").replaceWith(canvas);
-        setupInputEventListeners();
-        canvas.addEventListener('click', () => requestCanvasPointerLock(), false);
-        requestAnimationFrame(render);
+    globalRenderState.roomSet = new RoomSet();
+    globalRenderState.roomSet.init(gl, genRooms(2)).then(() => {
+        globalRenderState.sdfQueryManager = new SDFQueryManager();
+        globalRenderState.sdfQueryManager.init(gl, globalRenderState.roomSet).then(newGame);
     });
+
+
+
+
 }
 
 window.onload = init;

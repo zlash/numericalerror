@@ -56,18 +56,14 @@ class Player extends CollisionableMovingObject {
 }
 
 class Ingame {
-    async init() {
+    async init(roomSet, queryManager) {
         let gl = globalRenderState.gl;
         this.player = new Player(this);
 
-        this.roomSet = new RoomSet();
-        await this.roomSet.init(gl, genRooms(2));
-
-        this.sdfQueryManager = new SDFQueryManager();
-        let qmInit = this.sdfQueryManager.init(gl, this.roomSet);
+        this.roomSet = roomSet;
+        this.sdfQueryManager = queryManager;
 
         this.texturesArray = texturesArray(gl, 1024);
-        console.log("Created textures array.");
 
         this.camera = new Camera(this);
         this.timeSeconds = 0.0;
@@ -77,13 +73,10 @@ class Ingame {
         this.player.setStaticPos(...initialPos);
         this.camera.setStaticPos(...this.player.pos);
 
-
         this.itemPos = [...this.roomSet.hexRoom.center];
         this.itemPos[1] = this.roomSet.hexRoom.floor + 1;
         this.itemPos[2] += this.roomSet.hexRoom.boundDepth * 0.5 - 0.5;
         this.itemPos[3] = 1;
-
-        await qmInit;
     }
 
     update(dTimeSeconds) {
@@ -95,7 +88,6 @@ class Ingame {
             qualityRatio = 2;
             resizeViewport();
         }
-
 
         this.sdfQueryManager.fetchQueries(gl);
 
@@ -123,6 +115,10 @@ class Ingame {
         //this.roomSet.dynamicObjects.submitObject(0, 2, 0, 2);
 
         let curRoom = this.roomSet.roomFromPoint(this.camera.pos);
+        if(curRoom==this.roomSet.bossRoom) {
+            endGame();
+        }
+        
         if (DEBUG) {
             if (curRoom && curRoom != this.currentRoom) {
                 console.log("Current room:", curRoom.idx);
