@@ -51,7 +51,7 @@ function normalRand(min, max, mean) {
 
 function promisify(callback) {
     return new Promise((resolve, reject) => {
-        setTimeout(() => resolve(callback()), 0);
+        setTimeout(() => resolve(callback()), 1);
     });
 }
 

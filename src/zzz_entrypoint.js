@@ -88,10 +88,20 @@ function getExtension(gl, extension) {
 }
 
 
+
+function triggerGameOver() {
+    const div = document.createElement("div");
+    div.id = "G";
+    div.innerHTML = `<br><br><br><br><h1>GAME OVER!</h1><h2>Play again?</h2><h3>(Begins instantly as the shaders are already built!)</h3><br><button>PLAY</button>`;
+    document.querySelector("#G").replaceWith(div);
+    document.querySelector("button").addEventListener("click", () => alert("Pay again"));
+}
+
 function init() {
     console.log("js12k2019 - Debug mode [ON]");
 
     const canvas = document.createElement("canvas");
+    canvas.id = "G";
     let gl = canvas.getContext("webgl2", { antialias: false });
     globalRenderState.gl = gl;
 
@@ -99,7 +109,7 @@ function init() {
 
     resizeViewport();
 
-    document.body.appendChild(canvas);
+
 
     if (DEBUG) {
         globalRenderState.fpsCounterElement = document.createElement("div");
@@ -112,6 +122,7 @@ function init() {
     ingame = new Ingame();
 
     ingame.init().then(() => {
+        document.querySelector("#G").replaceWith(canvas);
         setupInputEventListeners();
         canvas.addEventListener('click', () => requestCanvasPointerLock(), false);
         requestAnimationFrame(render);

@@ -10,7 +10,7 @@ function loadShaderAsync(gl, type, source) {
         const shader = gl.createShader(type);
         gl.shaderSource(shader, source);
         gl.compileShader(shader);
-
+        /*
         if (DEBUG) {
             if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
                 alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
@@ -21,7 +21,7 @@ function loadShaderAsync(gl, type, source) {
                 return null;
             }
         }
-
+        */
         return shader;
     });
 }
@@ -32,6 +32,7 @@ function createProgramWithShadersAsync(gl, shaders) {
         shaders.forEach(x => gl.attachShader(shaderProgram, x));
         gl.linkProgram(shaderProgram);
 
+        /*
         if (DEBUG) {
             if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
                 alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
@@ -40,6 +41,7 @@ function createProgramWithShadersAsync(gl, shaders) {
         }
 
         shaders.forEach(x => gl.deleteShader(x));
+        */
         return shaderProgram;
     });
 }

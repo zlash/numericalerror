@@ -137,6 +137,6 @@ float sdBossLeg(vec3 pos)
 
 float sdBoss(vec3 pos)
 {
-    pos *= 2.0;
-    return sdfOpSmoothUnion(min(sdBossLeg(pos), sdBossLeg(pos.xzy)), sdSphere(pos, 1.5), 0.5) / 2.0;
+    pos /= 2.0;
+    return sdfOpSmoothUnion(min(sdBossLeg(pos.xzy), sdBossLeg(pos.zxy)), sdSphere(pos, 1.5), 0.5) * 2.0;
 }

@@ -26,6 +26,8 @@ class Player extends CollisionableMovingObject {
         this.up = v3Normalize(qApplyToV3(this.qDir, [0, 1, 0]));
 
         if (collisionPos) {
+
+            triggerGameOver();
             this.pos = collisionPos;
             this.nextPos = v3Add(this.pos, v3Scale(curVel, -0.8));
         }

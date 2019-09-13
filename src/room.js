@@ -80,13 +80,13 @@ function buildRoomSdfBlocks(roomData, idx) {
 
     if (roomData.roomType == RoomTypes.bossRoom) {
         addSdf(`sdfBarsDoor((${m4ToStrMat4(m4Invert(m4Translation([roomData.center[0], doorHeight * 0.5, roomData.center[2] - roomData.boundDepth * 0.5 + 0.1])))}*pos4).xyz,${v3ToStrVec3([doorWidth * 1.5, doorHeight * 0.35, 0.1])})`, 1);
-        
-        addSdf(`sdBoss((${m4ToStrMat4(m4Invert(m4Translation(roomData.center)))}*pos4).xyz)`, 1);
-        
+
+        addSdf(`sdBoss((${m4ToStrMat4(m4Invert(m4Translation([roomData.center[0], roomData.floor + 2, roomData.center[2]])))}*pos4).xyz)`, 1);
+
     }
 
     if (roomData.roomType == RoomTypes.hexRoom) {
-        addSdf(`sdfHex((${m4ToStrMat4(m4Invert(m4Multiply(m4Translation(v3Subtract(roomData.center, [2, -0.5 * roomData.boundHeight + 0.1,0])), m4AxisAngleRotation([1, 0, 0], -0.5 * Math.PI))))}*pos4).xyz,${v2ToStrVec2([roomData.boundHeight, roomData.boundWidth])})`, 0);
+        addSdf(`sdfHex((${m4ToStrMat4(m4Invert(m4Multiply(m4Translation(v3Subtract(roomData.center, [2, -0.5 * roomData.boundHeight + 0.1, 0])), m4AxisAngleRotation([1, 0, 0], -0.5 * Math.PI))))}*pos4).xyz,${v2ToStrVec2([roomData.boundHeight, roomData.boundWidth])})`, 0);
     }
 
 
@@ -155,6 +155,8 @@ class RoomSet {
         this.dynamicObjects = new DynamicRoomObjects(gl);
         this.rooms = [];
 
+        this.loadedShaders = 0;
+
         for (let roomData of rooms) {
             this.rooms.push((async () => {
                 roomData.metadata = roomData.points.map((x) => { return { portal: x[2] }; });
@@ -176,29 +178,34 @@ class RoomSet {
 
                 roomData.shader = await createProgramAsync(gl, prependPrecisionAndVersion(roomVS), fs);
                 console.log(`Created shader for room: ${roomData.idx}`);
-                roomData.aVertexPosition = gl.getAttribLocation(roomData.shader, 'aVertexPosition');
-                roomData.uProjectionMatrix = getUniformLocation(gl, roomData.shader, 'uProjectionMatrix');
-                roomData.uModelViewMatrix = getUniformLocation(gl, roomData.shader, 'uModelViewMatrix');
-                roomData.uClipModelViewMatrix = getUniformLocation(gl, roomData.shader, 'uClipModelViewMatrix');
-                roomData.uDynamicTransforms = getUniformLocation(gl, roomData.shader, 'uDynamicTransforms');
-                roomData.uScreenSize = getUniformLocation(gl, roomData.shader, 'uScreenSize');
-                roomData.uTimeSeconds = getUniformLocation(gl, roomData.shader, 'uTimeSeconds');
-                roomData.uArraySampler = getUniformLocation(gl, roomData.shader, 'uArraySampler');
-                roomData.uGameData = getUniformLocation(gl, roomData.shader, 'uGameData');
 
-
-
-                let uboDO = this.dynamicObjects.ubo;
-                let uboDOIndex = gl.getUniformBlockIndex(roomData.shader, 'DO');
-                bindUniformBufferWithIndex(gl, uboDO, 0);
-                gl.uniformBlockBinding(roomData.shader, uboDOIndex, 0);
+                this.loadedShaders++;
+                document.querySelector("#L").innerHTML = `Loading ${Math.floor(81 * this.loadedShaders / this.rooms.length)}%`;
 
                 return roomData;
             })());
         }
 
         this.rooms = await Promise.all(this.rooms);
+
+        for (let roomData of rooms) {
+            roomData.aVertexPosition = gl.getAttribLocation(roomData.shader, 'aVertexPosition');
+            roomData.uProjectionMatrix = getUniformLocation(gl, roomData.shader, 'uProjectionMatrix');
+            roomData.uModelViewMatrix = getUniformLocation(gl, roomData.shader, 'uModelViewMatrix');
+            roomData.uClipModelViewMatrix = getUniformLocation(gl, roomData.shader, 'uClipModelViewMatrix');
+            roomData.uDynamicTransforms = getUniformLocation(gl, roomData.shader, 'uDynamicTransforms');
+            roomData.uScreenSize = getUniformLocation(gl, roomData.shader, 'uScreenSize');
+            roomData.uTimeSeconds = getUniformLocation(gl, roomData.shader, 'uTimeSeconds');
+            roomData.uArraySampler = getUniformLocation(gl, roomData.shader, 'uArraySampler');
+            roomData.uGameData = getUniformLocation(gl, roomData.shader, 'uGameData');
+
+            let uboDO = this.dynamicObjects.ubo;
+            let uboDOIndex = gl.getUniformBlockIndex(roomData.shader, 'DO');
+            bindUniformBufferWithIndex(gl, uboDO, 0);
+            gl.uniformBlockBinding(roomData.shader, uboDOIndex, 0);
+        }
     }
+
 
     generateCollisionsShader() {
         let shader = `layout(location = 0) out vec4 fragColor;uniform float uTimeSeconds;uniform vec4 uGameData;uniform ivec2 uScreenSize;const float bigFloat=3.402823466e+38;${roomFunctionsFS}${this.rooms.map(x => x.blocks.auxCode).join("")}float dynamicStuff(vec3 p){return bigFloat;}float worldSdf(vec3 pos){vec4 pos4=vec4(pos,1.0);return ${makeChainOfMinsArray(this.rooms.map(x => makeChainOfMinsArray(Object.values(x.blocks.sdf))))};}${normalCodeFor("worldSdf")}${collisionsFS}`;
