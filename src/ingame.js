@@ -204,6 +204,12 @@ class Ingame {
             renderSet.unshift(currentRoomPair);
         }
 
+        //Avoid hit on posterior room renders hack
+        if (this.notFirstRender == null) {
+            renderSet = this.roomSet.rooms.map(x => { return { room: x }; });
+            this.notFirstRender = true;
+        }
+
         for (let roomPair of renderSet) {
 
             let room = roomPair.room;
