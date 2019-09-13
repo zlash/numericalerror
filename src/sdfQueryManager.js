@@ -8,7 +8,7 @@ class SDFQueryManager {
         this.queries = (new Float32Array(3 * MaxQueries * QueriesEntries)).fill(SomeBigFloat);
         this.nQueries = 0;
 
-        /*this.shader = await createProgramAsync(gl, prependPrecisionAndVersion(screenQuadVS), roomSet.generateCollisionsShader());
+        this.shader = await createProgramAsync(gl, prependPrecisionAndVersion(screenQuadVS), roomSet.generateCollisionsShader());
         console.log("Created collisions shader");
         this.fbo = createFBOWithTextureAttachment(gl, MaxQueries, 1, gl.RGBA32F, gl.RGBA, gl.FLOAT);
         this.aVertexPosition = gl.getAttribLocation(this.shader, "aVertexPosition");
@@ -16,9 +16,6 @@ class SDFQueryManager {
         this.uPositionsSampler = getUniformLocation(gl, this.shader, "uPositionsSampler");
 
         this.uploadTexture = createTexture2d(gl, MaxQueries, QueriesEntries, gl.RGB32F, gl.RGB, gl.FLOAT);
-        */
-
-        
     }
 
 
@@ -42,13 +39,12 @@ class SDFQueryManager {
     }
 
     fetchQueries(gl) {
-        //gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo.fbo);
-        //gl.readPixels(0, 0, MaxQueries, 1, gl.RGBA, gl.FLOAT, this.readDst);
-        this.readDst.fill(0);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo.fbo);
+        gl.readPixels(0, 0, MaxQueries, 1, gl.RGBA, gl.FLOAT, this.readDst);
     }
 
     runGpuQuery(gl) {
-        /*bindFBOAndSetViewport(gl, this.fbo.fbo, [MaxQueries, 1]);
+        bindFBOAndSetViewport(gl, this.fbo.fbo, [MaxQueries, 1]);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, globalRenderState.quadBuffer);
         gl.vertexAttribPointer(this.aVertexPosition, 2, gl.FLOAT, false, 0, 0);
@@ -61,7 +57,7 @@ class SDFQueryManager {
         gl.uniform1i(this.uPositionsSampler, 0);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        */
-       this.nQueries = 0;
+
+        this.nQueries = 0;
     }
 }

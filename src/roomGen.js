@@ -18,7 +18,8 @@ let RoomTypes = {
     lavaRoom: 2,
     gearsRoom: 3,
     initialRoom: 4,
-    bossRoom: 5
+    bossRoom: 5,
+    hexRoom: 6,
 };
 
 function initialRoomsGrid(gridSize) {
@@ -46,7 +47,9 @@ function initialRoomsGrid(gridSize) {
     }
 
     //0: oblig wall, 1: oblig door, 2: door/wall
-    let roomTiles = [[RoomTypes.empty, [0, 0, 0, 0]], [RoomTypes.normal, [1, 2, 1, 2]], [RoomTypes.normal, [1, 1, 2, 2]], [RoomTypes.lavaRoom, [1, 0, 1, 0]], [RoomTypes.gearsRoom, [1, 0, 1, 0]]];
+    let roomTiles = [[RoomTypes.empty, [0, 0, 0, 0]], [RoomTypes.normal, [1, 2, 1, 2]], [RoomTypes.normal, [1, 1, 2, 2]], [RoomTypes.lavaRoom, [1, 0, 1, 0]]];
+    let nonRotatingRoomTiles = [[RoomTypes.gearsRoom, [1, 0, 1, 0]]];
+
     let tilesEq = (a, b) => a[0] == b[0] && a[1].every((x, i) => x == b[1][i]);
     let roomsWFC = Array(m * m).fill(0).map(x => {
         let tiles = [];
@@ -55,6 +58,7 @@ function initialRoomsGrid(gridSize) {
                 tiles.push(rotateAndCopyTile(t, i));
             }
         }
+        nonRotatingRoomTiles.forEach(x => tiles.push(rotateAndCopyTile(x, 0)));
         return arrayUnique(tiles, tilesEq);
     });
 
@@ -134,6 +138,7 @@ function initialRoomsGrid(gridSize) {
 
     modifyCellAndEnforceConstraints(0, 0, [[RoomTypes.initialRoom, [0, 0, 1, 0]]]);
     modifyCellAndEnforceConstraints(m - 1, m - 1, [[RoomTypes.bossRoom, [1, 0, 0, 0]]]);
+    modifyCellAndEnforceConstraints(1, m - 1, [[RoomTypes.hexRoom, [1, 2, 0, 2]]]);
 
     while (true) {
         //Pick tiles with lowest wfc count
@@ -191,6 +196,13 @@ function initialRoomsGrid(gridSize) {
                 height -= floor;
                 depth = 25;
                 width = 25;
+            }
+
+            if (curRoom[0] == RoomTypes.hexRoom) {
+                floor = -5;
+                height = 12 - floor;
+                depth = 30;
+                width = 30;
             }
 
 

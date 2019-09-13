@@ -20,7 +20,7 @@ function buildWallMatrix(corner, side, len, floor, roomHeight) {
 
 function buildWall(corner, side, len, floor, roomHeight) {
     let m = buildWallMatrix(corner, side, len, floor, roomHeight);
-    return `sdfWall(vec3(${m4ToStrMat4(m4Invert(m))}*vec4(pos,1.0)), ${v2ToStrVec2([len * 0.5, roomHeight * 0.5])} )`;
+    return `sdfWall((${m4ToStrMat4(m4Invert(m))}*pos4).xyz, ${v2ToStrVec2([len * 0.5, roomHeight * 0.5])} )`;
 }
 
 function buildRoomSdfBlocks(roomData, idx) {
@@ -71,7 +71,7 @@ function buildRoomSdfBlocks(roomData, idx) {
     }
 
     if (roomData.roomType == RoomTypes.gearsRoom) {
-        addSdf(`sdfGearsSet(vec3(${m4ToStrMat4(m4Invert(m4Translation(roomData.center)))}*vec4(pos,1.0)))`, 1);
+        addSdf(`sdfGearsSet((${m4ToStrMat4(m4Invert(m4Translation(roomData.center)))}*pos4).xyz)`, 1);
     }
 
     addSdf(`sdfRoomFloor${idx}(pos)`, 1);
@@ -106,11 +106,13 @@ return sdfOpExtrusion(p,s*sqrt(d2d),${numberToStringWithDecimals(floorHeight)});
 }
 
 float sdfRoomFloor${idx}(vec3 p) {
-    return sdfRoomShape${idx}(vec3(inverse(${m4ToStrMat4(m4Translation([roomData.center[0], roomData.floor - floorHeight, roomData.center[2]]))}*${m4ToStrMat4(m4AxisAngleRotation([1, 0, 0], Math.PI * 0.5))})*vec4(p,1.0)));
+    vec4 pos4=vec4(p,1.0);
+    return sdfRoomShape${idx}((inverse(${m4ToStrMat4(m4Translation([roomData.center[0], roomData.floor - floorHeight, roomData.center[2]]))}*${m4ToStrMat4(m4AxisAngleRotation([1, 0, 0], Math.PI * 0.5))})*pos4).xyz);
 }
 
 float sdfRoomCeil${idx}(vec3 p) {
-    return sdfRoomShape${idx}(vec3(inverse(${m4ToStrMat4(m4Translation([roomData.center[0], roomData.ceiling + floorHeight, roomData.center[2]]))}*${m4ToStrMat4(m4AxisAngleRotation([1, 0, 0], Math.PI * 0.5))})*vec4(p,1.0)));
+    vec4 pos4=vec4(p,1.0);
+    return sdfRoomShape${idx}((inverse(${m4ToStrMat4(m4Translation([roomData.center[0], roomData.ceiling + floorHeight, roomData.center[2]]))}*${m4ToStrMat4(m4AxisAngleRotation([1, 0, 0], Math.PI * 0.5))})*pos4).xyz);
 }
 `;
 
@@ -173,7 +175,7 @@ class RoomSet {
     }
 
     generateCollisionsShader() {
-        let shader = `layout(location = 0) out vec4 fragColor;uniform ivec2 uScreenSize;${roomFunctionsFS}${this.rooms.map(x => x.blocks.auxCode).join("")}float dynamicStuff(vec3 p){return 3.402823466e+38;}float worldSdf(vec3 pos){return ${makeChainOfMinsArray(this.rooms.map(x => makeChainOfMinsArray(Object.values(x.blocks.sdf))))};}${normalCodeFor("worldSdf")}${collisionsFS}`;
+        let shader = `layout(location = 0) out vec4 fragColor;uniform ivec2 uScreenSize;${roomFunctionsFS}${this.rooms.map(x => x.blocks.auxCode).join("")}float dynamicStuff(vec3 p){return 3.402823466e+38;}float worldSdf(vec3 pos){vec4 pos4=vec4(pos,1.0);return ${makeChainOfMinsArray(this.rooms.map(x => makeChainOfMinsArray(Object.values(x.blocks.sdf))))};}${normalCodeFor("worldSdf")}${collisionsFS}`;
 
         return prependPrecisionAndVersion(shader);
     }
@@ -210,7 +212,7 @@ function buildRoomFS(roomSdf) {
     ${roomFunctionsDynamicFS}
     ${roomSdf.auxCode}
 
-    vec2 room(vec3 pos){float d=3.402823466e+38;float mat=-1.0;${roomSdf.sdf};return vec2(d,mat);}
+    vec2 room(vec3 pos){float d=3.402823466e+38;float mat=-1.0;vec4 pos4=vec4(pos,1.0);${roomSdf.sdf};return vec2(d,mat);}
 
     ${normalCodeFor("room", ".x")}
     
