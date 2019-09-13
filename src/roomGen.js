@@ -186,6 +186,8 @@ function initialRoomsGrid(gridSize) {
             if (curRoom[0] == RoomTypes.lavaRoom) { //special Lava room
                 floor = -30;
                 height -= floor;
+                depth = 20;
+                width = 25;
             }
 
             if (curRoom[0] == RoomTypes.gearsRoom) { // gears room

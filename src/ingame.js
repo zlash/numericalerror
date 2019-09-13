@@ -1,18 +1,4 @@
 
-let sampleRooms = [[
-    0.0, 5,
-
-    [3, -3],
-    [1.5, -3],
-    [-1.5, -3],
-    [-3, -3],
-    [-5, 0],
-    [-3, 3],
-    [3, 3],
-    [5, 0]
-]];
-
-
 class Player extends CollisionableMovingObject {
     constructor(game) {
         super(game);
@@ -91,7 +77,7 @@ class Ingame {
 
 
         this.itemPos = [...this.roomSet.hexRoom.center];
-        this.itemPos[1] = this.roomSet.hexRoom.floor + 1;
+        this.itemPos[1] = this.roomSet.hexRoom.floor + 0.5;
         this.itemPos[2] += this.roomSet.hexRoom.boundDepth * 0.5 - 0.5;
         this.itemPos[3] = 1;
 
@@ -112,6 +98,17 @@ class Ingame {
             let dist = v3Length(v3Subtract(this.player.pos, this.itemPos));
             if (dist < 1) {
                 this.itemPos = null;
+                this.mirrorPos = [...this.roomSet.lavaRoom.center];
+                this.mirrorPos[1] = this.roomSet.lavaRoom.floor + 0.5;
+                this.mirrorPos[3] = 1;
+            }
+        }
+
+        if (this.mirrorPos != undefined && this.mirrorPos !== true) {
+            this.roomSet.dynamicObjects.submitObject(...this.mirrorPos);
+            let dist = v3Length(v3Subtract(this.player.pos, this.mirrorPos));
+            if (dist < 1) {
+                this.mirrorPos = true;
             }
         }
         //rotavirus

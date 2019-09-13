@@ -74,6 +74,16 @@ float sdfBarsDoor(vec3 pos, vec3 b)
     }
 }
 
+float sdfLavaSafe(vec3 pos)
+{
+    if (uGameData.x > 0.0) {
+        return sdfBox(pos, vec3(2.0,2.0,2.0));
+    } else {
+        return bigFloat;
+    }
+}
+
+
 float sdHexPrism(vec3 p, vec2 h)
 {
     const vec3 k = vec3(-0.8660254, 0.5, 0.57735);

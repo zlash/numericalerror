@@ -74,6 +74,10 @@ function buildRoomSdfBlocks(roomData, idx) {
         addSdf(`sdfGearsSet((${m4ToStrMat4(m4Invert(m4Translation(roomData.center)))}*pos4).xyz)`, 1);
     }
 
+    if (roomData.roomType == RoomTypes.lavaRoom) {
+        addSdf(`sdfLavaSafe((${m4ToStrMat4(m4Invert(m4Translation(roomData.center)))}*pos4).xyz)`, 1);
+    }
+
     if (roomData.roomType == RoomTypes.bossRoom) {
         addSdf(`sdfBarsDoor((${m4ToStrMat4(m4Invert(m4Translation([roomData.center[0], doorHeight * 0.5, roomData.center[2] - roomData.boundDepth * 0.5 + 0.1])))}*pos4).xyz,${v3ToStrVec3([doorWidth * 1.5, doorHeight * 0.35, 0.1])})`, 1);
     }
@@ -163,6 +167,10 @@ class RoomSet {
                     this.hexRoom = roomData;
                 }
 
+                if (roomData.roomType == RoomTypes.lavaRoom) {
+                    this.lavaRoom = roomData;
+                }
+
                 roomData.shader = await createProgramAsync(gl, prependPrecisionAndVersion(roomVS), fs);
                 console.log(`Created shader for room: ${roomData.idx}`);
                 roomData.aVertexPosition = gl.getAttribLocation(roomData.shader, 'aVertexPosition');
@@ -174,7 +182,7 @@ class RoomSet {
                 roomData.uTimeSeconds = getUniformLocation(gl, roomData.shader, 'uTimeSeconds');
                 roomData.uArraySampler = getUniformLocation(gl, roomData.shader, 'uArraySampler');
                 roomData.uGameData = getUniformLocation(gl, roomData.shader, 'uGameData');
-                
+
 
 
                 let uboDO = this.dynamicObjects.ubo;
