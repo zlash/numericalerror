@@ -25,13 +25,14 @@ class Player extends CollisionableMovingObject {
 
     onUpdate(dTimeSeconds, curVel, curDirection, collisionPos, collisionNormal) {
 
+        const mouseMod = 0.3;
         if (mouseDeltaX != 0) {
-            let q = qMultiply(this.qDir, qFromAxisAngle([0, 1, 0], dTimeSeconds * -mouseDeltaX));
+            let q = qMultiply(this.qDir, qFromAxisAngle([0, 1, 0], mouseMod * dTimeSeconds * -mouseDeltaX));
             qNormalize(q, this.qDir);
         }
 
         if (mouseDeltaY != 0) {
-            let q = qMultiply(this.qDir, qFromAxisAngle([1, 0, 0], dTimeSeconds * mouseDeltaY));
+            let q = qMultiply(this.qDir, qFromAxisAngle([1, 0, 0], mouseMod * dTimeSeconds * mouseDeltaY));
             qNormalize(q, this.qDir);
         }
 
@@ -123,7 +124,7 @@ class Ingame {
     render() {
         let gl = globalRenderState.gl;
 
-        this.sdfQueryManager.runGpuQuery(gl);
+        this.sdfQueryManager.runGpuQuery(gl, this.timeSeconds);
 
         bindFBOAndSetViewport(gl, undefined, globalRenderState.screen);
 

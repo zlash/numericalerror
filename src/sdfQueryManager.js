@@ -14,6 +14,7 @@ class SDFQueryManager {
         this.aVertexPosition = gl.getAttribLocation(this.shader, "aVertexPosition");
         this.uScreenSize = getUniformLocation(gl, this.shader, "uScreenSize");
         this.uPositionsSampler = getUniformLocation(gl, this.shader, "uPositionsSampler");
+        this.uTimeSeconds = getUniformLocation(gl, this.shader, "uTimeSeconds");
 
         this.uploadTexture = createTexture2d(gl, MaxQueries, QueriesEntries, gl.RGB32F, gl.RGB, gl.FLOAT);
     }
@@ -43,7 +44,7 @@ class SDFQueryManager {
         gl.readPixels(0, 0, MaxQueries, 1, gl.RGBA, gl.FLOAT, this.readDst);
     }
 
-    runGpuQuery(gl) {
+    runGpuQuery(gl, t) {
         bindFBOAndSetViewport(gl, this.fbo.fbo, [MaxQueries, 1]);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, globalRenderState.quadBuffer);
@@ -51,6 +52,7 @@ class SDFQueryManager {
         gl.enableVertexAttribArray(this.aVertexPosition);
         gl.useProgram(this.shader);
         gl.uniform2iv(this.uScreenSize, [MaxQueries, 1]);
+        gl.uniform1f(this.uTimeSeconds, t);
 
         gl.bindTexture(gl.TEXTURE_2D, this.uploadTexture);
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, MaxQueries, QueriesEntries, gl.RGB, gl.FLOAT, this.queries);

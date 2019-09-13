@@ -64,3 +64,29 @@ float sdfGearsSet(vec3 pos)
 {
     return sdfBox(pos, vec3(2.0));
 }
+
+float sdHexPrism(vec3 p, vec2 h)
+{
+    const vec3 k = vec3(-0.8660254, 0.5, 0.57735);
+    p = abs(p);
+    p.xy -= 2.0 * min(dot(k.xy, p.xy), 0.0) * k.xy;
+    vec2 d = vec2(
+        length(p.xy - vec2(clamp(p.x, -k.z * h.x, k.z * h.x), h.x)) * sign(p.y - h.x),
+        p.z - h.y);
+    return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
+}
+
+// h -> height / side
+float sdfHex(vec3 pos, vec2 h)
+{
+    float w = h.y / 5.0;
+    float d = bigFloat;
+
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 5; j++) {
+            float hh = abs(sin(0.5 * uTimeSeconds + 3.1515 * 0.5 * float(i) / 9.0));
+            d = min(d, sdHexPrism(pos - vec3(4.0 * w * (float(j) - 2.0 + (i % 2 == 0 ? 0.0 : 0.5)) / 5.0, 2.0 * w * (float(i) - 4.0) / 5.0, -0.5 * h.x + hh * h.x), vec2(w * 0.9 * 0.25, 0.5 * h.x)));
+        }
+    }
+    return d;
+}

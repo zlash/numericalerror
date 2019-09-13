@@ -8,4 +8,6 @@ uniform mat4 uDynamicTransforms[10];
 
 uniform float uTimeSeconds;
 
+const float bigFloat=3.402823466e+38;
+
 layout(location = 0) out vec4 fragColor;

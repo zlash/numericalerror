@@ -74,6 +74,11 @@ function buildRoomSdfBlocks(roomData, idx) {
         addSdf(`sdfGearsSet((${m4ToStrMat4(m4Invert(m4Translation(roomData.center)))}*pos4).xyz)`, 1);
     }
 
+    if (roomData.roomType == RoomTypes.hexRoom) {
+        addSdf(`sdfHex((${m4ToStrMat4(m4Invert(m4Multiply(m4Translation(v3Subtract(roomData.center, [0, -0.5 * roomData.boundHeight + 0.1, 0])), m4AxisAngleRotation([1, 0, 0], -0.5 * Math.PI))))}*pos4).xyz,${v2ToStrVec2([roomData.boundHeight, roomData.boundWidth])})`, 0);
+    }
+
+
     addSdf(`sdfRoomFloor${idx}(pos)`, 1);
     addSdf(`sdfRoomCeil${idx}(pos)`, 0);
     addSdf(`dynamicStuff(pos)`, 2);
@@ -175,7 +180,7 @@ class RoomSet {
     }
 
     generateCollisionsShader() {
-        let shader = `layout(location = 0) out vec4 fragColor;uniform ivec2 uScreenSize;${roomFunctionsFS}${this.rooms.map(x => x.blocks.auxCode).join("")}float dynamicStuff(vec3 p){return 3.402823466e+38;}float worldSdf(vec3 pos){vec4 pos4=vec4(pos,1.0);return ${makeChainOfMinsArray(this.rooms.map(x => makeChainOfMinsArray(Object.values(x.blocks.sdf))))};}${normalCodeFor("worldSdf")}${collisionsFS}`;
+        let shader = `layout(location = 0) out vec4 fragColor;uniform float uTimeSeconds;uniform ivec2 uScreenSize;const float bigFloat=3.402823466e+38;${roomFunctionsFS}${this.rooms.map(x => x.blocks.auxCode).join("")}float dynamicStuff(vec3 p){return bigFloat;}float worldSdf(vec3 pos){vec4 pos4=vec4(pos,1.0);return ${makeChainOfMinsArray(this.rooms.map(x => makeChainOfMinsArray(Object.values(x.blocks.sdf))))};}${normalCodeFor("worldSdf")}${collisionsFS}`;
 
         return prependPrecisionAndVersion(shader);
     }

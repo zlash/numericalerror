@@ -20,6 +20,7 @@ let RoomTypes = {
     initialRoom: 4,
     bossRoom: 5,
     hexRoom: 6,
+    aisle: 7,
 };
 
 function initialRoomsGrid(gridSize) {
@@ -136,9 +137,10 @@ function initialRoomsGrid(gridSize) {
         enforceConstraints(x, y - 1);
     }
 
+    modifyCellAndEnforceConstraints(1, m - 1, [[RoomTypes.hexRoom, [1, 0, 0, 0]]]);
     modifyCellAndEnforceConstraints(0, 0, [[RoomTypes.initialRoom, [0, 0, 1, 0]]]);
     modifyCellAndEnforceConstraints(m - 1, m - 1, [[RoomTypes.bossRoom, [1, 0, 0, 0]]]);
-    modifyCellAndEnforceConstraints(1, m - 1, [[RoomTypes.hexRoom, [1, 2, 0, 2]]]);
+   
 
     while (true) {
         //Pick tiles with lowest wfc count
@@ -381,6 +383,7 @@ function genRooms(nRooms) {
                     floor: 0,
                     ceiling: doorHeight,
                     idx: `${roomA.idx}_${roomB.idx}`,
+                    roomType: RoomTypes.aisle,
                     points: [
                         [p0[0], p0[1]],
                         [p1[0], p1[1], roomB],
