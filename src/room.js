@@ -80,14 +80,17 @@ function buildRoomSdfBlocks(roomData, idx) {
 
     if (roomData.roomType == RoomTypes.bossRoom) {
         addSdf(`sdfBarsDoor((${m4ToStrMat4(m4Invert(m4Translation([roomData.center[0], doorHeight * 0.5, roomData.center[2] - roomData.boundDepth * 0.5 + 0.1])))}*pos4).xyz,${v3ToStrVec3([doorWidth * 1.5, doorHeight * 0.35, 0.1])})`, 1);
+        
+        addSdf(`sdBoss((${m4ToStrMat4(m4Invert(m4Translation(roomData.center)))}*pos4).xyz)`, 1);
+        
     }
 
     if (roomData.roomType == RoomTypes.hexRoom) {
-        addSdf(`sdfHex((${m4ToStrMat4(m4Invert(m4Multiply(m4Translation(v3Subtract(roomData.center, [0, -0.5 * roomData.boundHeight + 0.1, 0])), m4AxisAngleRotation([1, 0, 0], -0.5 * Math.PI))))}*pos4).xyz,${v2ToStrVec2([roomData.boundHeight, roomData.boundWidth])})`, 0);
+        addSdf(`sdfHex((${m4ToStrMat4(m4Invert(m4Multiply(m4Translation(v3Subtract(roomData.center, [2, -0.5 * roomData.boundHeight + 0.1,0])), m4AxisAngleRotation([1, 0, 0], -0.5 * Math.PI))))}*pos4).xyz,${v2ToStrVec2([roomData.boundHeight, roomData.boundWidth])})`, 0);
     }
 
 
-    addSdf(`sdfRoomFloor${idx}(pos)`, 1);
+    addSdf(`sdfRoomFloor${idx}(pos)`, roomData.roomType == RoomTypes.lavaRoom ? 1 : 0);
     addSdf(`sdfRoomCeil${idx}(pos)`, 0);
     addSdf(`dynamicStuff(pos)`, 2);
 

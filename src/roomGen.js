@@ -140,8 +140,8 @@ function initialRoomsGrid(gridSize) {
     modifyCellAndEnforceConstraints(1, m - 1, [[RoomTypes.hexRoom, [1, 0, 0, 0]]]);
     modifyCellAndEnforceConstraints(m - 2, 0, [[RoomTypes.lavaRoom, [0, 1, 0, 1]]]);
 
-    modifyCellAndEnforceConstraints(0, 0, [[RoomTypes.initialRoom, [0, 1, 0, 0]]]);
-    modifyCellAndEnforceConstraints(m - 1, m - 1, [[RoomTypes.bossRoom, [1, 0, 0, 0]]]);
+    modifyCellAndEnforceConstraints(0, 0, [[RoomTypes.bossRoom, [2, 1, 0, 0]]]);
+   // modifyCellAndEnforceConstraints(m - 1, m - 1, [[RoomTypes.bossRoom, [1, 0, 0, 0]]]);
 
 
     while (true) {
@@ -186,7 +186,7 @@ function initialRoomsGrid(gridSize) {
             if (curRoom[0] == RoomTypes.lavaRoom) { //special Lava room
                 floor = -30;
                 height -= floor;
-                depth = 20;
+                depth = 40;
                 width = 25;
             }
 

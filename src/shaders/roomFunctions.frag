@@ -77,12 +77,11 @@ float sdfBarsDoor(vec3 pos, vec3 b)
 float sdfLavaSafe(vec3 pos)
 {
     if (uGameData.x > 0.0) {
-        return sdfBox(pos, vec3(2.0,2.0,2.0));
+        return sdfBox(pos, vec3(2.0, 2.0, 2.0));
     } else {
         return bigFloat;
     }
 }
-
 
 float sdHexPrism(vec3 p, vec2 h)
 {
@@ -103,9 +102,41 @@ float sdfHex(vec3 pos, vec2 h)
 
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 5; j++) {
-            float hh = abs(sin(0.5 * uTimeSeconds + 3.1515 * 0.5 * float(i) / 9.0));
+            float hh = abs(sin(((uGameData.x > 0.0) ? 1.0 : -1.0) * uTimeSeconds + 3.1515 * 0.5 * float(i) / 9.0));
             d = min(d, sdHexPrism(pos - vec3(4.0 * w * (float(j) - 2.0 + (i % 2 == 0 ? 0.0 : 0.5)) / 5.0, 2.0 * w * (float(i) - 4.0) / 5.0, -0.5 * h.x + hh * h.x), vec2(w * 0.9 * 0.25, 0.5 * h.x)));
         }
     }
     return d;
+}
+
+float sdSphere(vec3 p, float s)
+{
+    return length(p) - s;
+}
+
+float sdCappedCylinder(vec3 p, float h, float r)
+{
+    vec2 d = abs(vec2(length(p.xz), p.y)) - vec2(h, r);
+    return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
+}
+
+vec3 sdfPreSymY(in vec3 p)
+{
+    p.y = abs(p.y);
+    return p;
+}
+
+float sdBossLeg(vec3 pos)
+{
+    float t = 2.5 * uTimeSeconds;
+    pos = sdfPreSymY(pos);
+    return sdfOpSmoothUnion(
+        sdCappedCylinder(pos, 0.3, 6.0),
+        min(min(sdSphere(pos - vec3(0.0, 2.0, 0.0), 0.5 + 0.1 * sin(t)), sdSphere(pos - vec3(0.0, 3.5, 0.0), 0.3 + 0.1 * sin(t + 1.0))), sdSphere(pos - vec3(0.0, 6.0, 0.0), 0.4 + 0.1 * sin(t + 2.0))), 0.25 + 0.05 * (1.0 + sin(t * 0.5)));
+}
+
+float sdBoss(vec3 pos)
+{
+    pos *= 2.0;
+    return sdfOpSmoothUnion(min(sdBossLeg(pos), sdBossLeg(pos.xzy)), sdSphere(pos, 1.5), 0.5) / 2.0;
 }

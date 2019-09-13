@@ -41,9 +41,9 @@ class Player extends CollisionableMovingObject {
             acc -= mv;
         }
 
-        if (isKeyDown(KeyCodeShoot)) {
+        /*if (isKeyDown(KeyCodeShoot)) {
             this.balloons.push([...this.pos, 1]);
-        }
+        }*/
 
         for (let b of this.balloons) {
             this.game.roomSet.dynamicObjects.submitObject(...b);
@@ -77,7 +77,7 @@ class Ingame {
 
 
         this.itemPos = [...this.roomSet.hexRoom.center];
-        this.itemPos[1] = this.roomSet.hexRoom.floor + 0.5;
+        this.itemPos[1] = this.roomSet.hexRoom.floor + 1;
         this.itemPos[2] += this.roomSet.hexRoom.boundDepth * 0.5 - 0.5;
         this.itemPos[3] = 1;
 
@@ -89,6 +89,12 @@ class Ingame {
 
         let gl = globalRenderState.gl;
 
+        if (isKeyDown(KeyCodeQuality)) {
+            qualityRatio = 2;
+            resizeViewport();
+        }
+
+
         this.sdfQueryManager.fetchQueries(gl);
 
         this.player.update(dTimeSeconds);
@@ -99,7 +105,7 @@ class Ingame {
             if (dist < 1) {
                 this.itemPos = null;
                 this.mirrorPos = [...this.roomSet.lavaRoom.center];
-                this.mirrorPos[1] = this.roomSet.lavaRoom.floor + 0.5;
+                this.mirrorPos[1] = this.roomSet.lavaRoom.floor + 1;
                 this.mirrorPos[3] = 1;
             }
         }

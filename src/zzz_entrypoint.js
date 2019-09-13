@@ -18,7 +18,11 @@ function createQuad(gl) {
 
 }
 
+let qualityRatio = 2;
+const canvasScale = 1.0;
+
 let prevTSeconds = 0;
+let lastTenFrames = [];
 let ingame;
 
 function render(tSeconds) {
@@ -27,8 +31,30 @@ function render(tSeconds) {
     const dTimeSeconds = tSeconds - prevTSeconds;
     prevTSeconds = tSeconds;
 
+    let avg = 0;
+
+    lastTenFrames.push(dTimeSeconds);
+    if (lastTenFrames.length == 6) {
+        lastTenFrames.shift();
+        avg = lastTenFrames.reduce((acc, x) => acc + x / lastTenFrames.length, 0);
+
+        if (avg > 1 / 45) {
+            if (avg > 1 / 10) {
+                qualityRatio *= 0.5;
+            } else if (avg > 1 / 20) {
+                qualityRatio *= 0.75;
+            } else if (avg > 1 / 30) {
+                qualityRatio *= 0.85;
+            } else {
+                qualityRatio -= 0.01;
+            }
+            resizeViewport();
+            lastTenFrames = [];
+        }
+    }
+
     if (DEBUG) {
-        globalRenderState.fpsCounterElement.textContent = `Frame time: ${dTimeSeconds * 1000} ms`;
+        globalRenderState.fpsCounterElement.textContent = `Frame time: ${dTimeSeconds * 1000} ms | 10 avg: ${avg * 1000} ms`;
     }
 
     updateMouseDeltas();
@@ -40,6 +66,11 @@ function render(tSeconds) {
 }
 
 function resizeViewport() {
+    let fbScale = canvasScale * qualityRatio;
+    globalRenderState.gl.canvas.width = 640 * fbScale;
+    globalRenderState.gl.canvas.height = 480 * fbScale;
+    globalRenderState.gl.canvas.style.width = `${globalRenderState.gl.canvas.width / qualityRatio}px`;
+
     globalRenderState.screen = [globalRenderState.gl.canvas.width, globalRenderState.gl.canvas.height];
 }
 
@@ -56,10 +87,8 @@ function getExtension(gl, extension) {
     }
 }
 
-function init() {
-    const qualityRatio = 0.5;
-    const canvasScale = 1.0;
 
+function init() {
     console.log("js12k2019 - Debug mode [ON]");
 
     const canvas = document.createElement("canvas");
@@ -68,12 +97,7 @@ function init() {
 
     getExtension(gl, "EXT_color_buffer_float");
 
-    let fbScale = canvasScale * qualityRatio;
-    canvas.width = 800 * fbScale;
-    canvas.height = 600 * fbScale;
     resizeViewport();
-
-    canvas.style.width = `${canvas.width / qualityRatio}px`;
 
     document.body.appendChild(canvas);
 

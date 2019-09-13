@@ -6,6 +6,7 @@ let KeyCodeDown = "KeyS";
 let KeyCodeLeft = "KeyA";
 let KeyCodeRight = "KeyD";
 let KeyCodeShoot = "Space";
+let KeyCodeQuality = "Digit1";
 
 let _mouseDeltaXBuffer = 0;
 let _mouseDeltaYBuffer = 0;

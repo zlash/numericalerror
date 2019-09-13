@@ -89,7 +89,7 @@ vec3 shade(vec3 pos, vec3 normal, float mat)
             uv = (transpose(mat3(crossA, crossB, normal)) * pos).xy;
         }
 
-        return tex(uv / 64.0) * texture(uArraySampler, uv / 8.0).rgb;
+        return (0.35 + 0.65 * tex(uv * 2.0)) * texture(uArraySampler, uv / 6.0).rgb;
     } else if (mat < 1.5) { // Floor
         /*vec2 q = floor(pos.xz);
         return vec3(mod(q.x + q.y, 2.));*/
@@ -115,7 +115,7 @@ void main()
     vec4 pView = inverse(uProjectionMatrix) * vec4(vUvs.xy * 2.0 - vec2(1), -1.0, 1.0);
     vec4 pView2 = inverse(uProjectionMatrix) * vec4(vUvs.xy * 2.0 - vec2(1), 1.0, 1.0);
     vec3 pos = (pView.xyz / pView.w);
-    pView2/=pView2.w;
+    pView2 /= pView2.w;
     vec3 view = normalize(pView2.xyz);
 
     for (int i = ZERO; i < 64; i++) {
