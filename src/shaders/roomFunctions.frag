@@ -65,6 +65,11 @@ float sdfGearsSet(vec3 pos)
     return sdfBox(pos, vec3(2.0));
 }
 
+float sdfBarsDoor(vec3 pos, vec3 b)
+{
+    return sdfBox(pos, b);
+}
+
 float sdHexPrism(vec3 p, vec2 h)
 {
     const vec3 k = vec3(-0.8660254, 0.5, 0.57735);

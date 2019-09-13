@@ -48,7 +48,7 @@ function initialRoomsGrid(gridSize) {
     }
 
     //0: oblig wall, 1: oblig door, 2: door/wall
-    let roomTiles = [[RoomTypes.empty, [0, 0, 0, 0]], [RoomTypes.normal, [1, 2, 1, 2]], [RoomTypes.normal, [1, 1, 2, 2]], [RoomTypes.lavaRoom, [1, 0, 1, 0]]];
+    let roomTiles = [[RoomTypes.empty, [0, 0, 0, 0]], [RoomTypes.normal, [1, 2, 1, 2]], [RoomTypes.normal, [1, 1, 2, 2]]];
     let nonRotatingRoomTiles = [[RoomTypes.gearsRoom, [1, 0, 1, 0]]];
 
     let tilesEq = (a, b) => a[0] == b[0] && a[1].every((x, i) => x == b[1][i]);
@@ -138,9 +138,11 @@ function initialRoomsGrid(gridSize) {
     }
 
     modifyCellAndEnforceConstraints(1, m - 1, [[RoomTypes.hexRoom, [1, 0, 0, 0]]]);
-    modifyCellAndEnforceConstraints(0, 0, [[RoomTypes.initialRoom, [0, 0, 1, 0]]]);
+    modifyCellAndEnforceConstraints(m - 2, 0, [[RoomTypes.lavaRoom, [0, 1, 0, 1]]]);
+
+    modifyCellAndEnforceConstraints(0, 0, [[RoomTypes.initialRoom, [0, 1, 0, 0]]]);
     modifyCellAndEnforceConstraints(m - 1, m - 1, [[RoomTypes.bossRoom, [1, 0, 0, 0]]]);
-   
+
 
     while (true) {
         //Pick tiles with lowest wfc count

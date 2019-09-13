@@ -73,6 +73,10 @@ function v2ToStrVec2(v2) {
     return `vec2(${numberToStringWithDecimals(v2[0])},${numberToStringWithDecimals(v2[1])})`;
 }
 
+function v3ToStrVec3(v3) {
+    return `vec3(${numberToStringWithDecimals(v3[0])},${numberToStringWithDecimals(v3[1])},${numberToStringWithDecimals(v3[2])})`;
+}
+
 function v3xzToStrVec2(v3) {
     return `vec2(${numberToStringWithDecimals(v3[0])},${numberToStringWithDecimals(v3[2])})`;
 }

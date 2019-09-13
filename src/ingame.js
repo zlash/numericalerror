@@ -89,6 +89,12 @@ class Ingame {
         this.player.setStaticPos(...initialPos);
         this.camera.setStaticPos(...this.player.pos);
 
+
+        this.itemPos = [...this.roomSet.hexRoom.center];
+        this.itemPos[1] = this.roomSet.hexRoom.floor + 1;
+        this.itemPos[2] += this.roomSet.hexRoom.boundDepth * 0.5 - 0.5;
+        this.itemPos[3] = 1;
+
         await qmInit;
     }
 
@@ -101,6 +107,13 @@ class Ingame {
 
         this.player.update(dTimeSeconds);
 
+        if (this.itemPos) {
+            this.roomSet.dynamicObjects.submitObject(...this.itemPos);
+            let dist = v3Length(v3Subtract(this.player.pos, this.itemPos));
+            if (dist < 1) {
+                this.itemPos = null;
+            }
+        }
         //rotavirus
         //this.roomSet.dynamicObjects.submitObject(0, 2, 0, 2);
 
