@@ -75,7 +75,7 @@ function buildRoomSdfBlocks(roomData, idx) {
     }
 
     if (roomData.roomType == RoomTypes.bossRoom) {
-        addSdf(`sdfBarsDoor((${m4ToStrMat4(m4Invert(m4Translation([roomData.center[0], doorHeight * 0.5, roomData.center[2] - roomData.boundDepth * 0.5 + 0.1])))}*pos4).xyz,${v3ToStrVec3([doorWidth * 1.5, doorHeight * 1.5, 0.1])})`, 1);
+        addSdf(`sdfBarsDoor((${m4ToStrMat4(m4Invert(m4Translation([roomData.center[0], doorHeight * 0.5, roomData.center[2] - roomData.boundDepth * 0.5 + 0.1])))}*pos4).xyz,${v3ToStrVec3([doorWidth * 1.5, doorHeight * 0.35, 0.1])})`, 1);
     }
 
     if (roomData.roomType == RoomTypes.hexRoom) {
@@ -173,6 +173,8 @@ class RoomSet {
                 roomData.uScreenSize = getUniformLocation(gl, roomData.shader, 'uScreenSize');
                 roomData.uTimeSeconds = getUniformLocation(gl, roomData.shader, 'uTimeSeconds');
                 roomData.uArraySampler = getUniformLocation(gl, roomData.shader, 'uArraySampler');
+                roomData.uGameData = getUniformLocation(gl, roomData.shader, 'uGameData');
+                
 
 
                 let uboDO = this.dynamicObjects.ubo;
@@ -188,7 +190,7 @@ class RoomSet {
     }
 
     generateCollisionsShader() {
-        let shader = `layout(location = 0) out vec4 fragColor;uniform float uTimeSeconds;uniform ivec2 uScreenSize;const float bigFloat=3.402823466e+38;${roomFunctionsFS}${this.rooms.map(x => x.blocks.auxCode).join("")}float dynamicStuff(vec3 p){return bigFloat;}float worldSdf(vec3 pos){vec4 pos4=vec4(pos,1.0);return ${makeChainOfMinsArray(this.rooms.map(x => makeChainOfMinsArray(Object.values(x.blocks.sdf))))};}${normalCodeFor("worldSdf")}${collisionsFS}`;
+        let shader = `layout(location = 0) out vec4 fragColor;uniform float uTimeSeconds;uniform vec4 uGameData;uniform ivec2 uScreenSize;const float bigFloat=3.402823466e+38;${roomFunctionsFS}${this.rooms.map(x => x.blocks.auxCode).join("")}float dynamicStuff(vec3 p){return bigFloat;}float worldSdf(vec3 pos){vec4 pos4=vec4(pos,1.0);return ${makeChainOfMinsArray(this.rooms.map(x => makeChainOfMinsArray(Object.values(x.blocks.sdf))))};}${normalCodeFor("worldSdf")}${collisionsFS}`;
 
         return prependPrecisionAndVersion(shader);
     }

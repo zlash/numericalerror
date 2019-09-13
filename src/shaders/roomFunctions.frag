@@ -67,7 +67,11 @@ float sdfGearsSet(vec3 pos)
 
 float sdfBarsDoor(vec3 pos, vec3 b)
 {
-    return sdfBox(pos, b);
+    if (uGameData.x > 0.0) {
+        return sdfBox(pos, b);
+    } else {
+        return bigFloat;
+    }
 }
 
 float sdHexPrism(vec3 p, vec2 h)

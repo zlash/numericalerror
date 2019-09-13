@@ -132,12 +132,14 @@ class Ingame {
 
         this.pmv = m4Multiply(this.projectionMatrix, this.viewMatrix);
         this.timeSeconds += dTimeSeconds;
+
+        this.gameData = [this.itemPos == null ? 0 : 1, 0, 0, 0];
     }
 
     render() {
         let gl = globalRenderState.gl;
 
-        this.sdfQueryManager.runGpuQuery(gl, this.timeSeconds);
+        this.sdfQueryManager.runGpuQuery(gl, this.timeSeconds, this.gameData);
 
         bindFBOAndSetViewport(gl, undefined, globalRenderState.screen);
 
@@ -228,6 +230,8 @@ class Ingame {
             gl.uniform1f(room.uTimeSeconds, this.timeSeconds);
 
             gl.uniform2iv(room.uScreenSize, globalRenderState.screen);
+
+            gl.uniform4fv(room.uGameData, this.gameData);
 
             gl.bindTexture(gl.TEXTURE_2D, this.texturesArray);
             gl.uniform1i(room.uArraySampler, 0);
